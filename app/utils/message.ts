@@ -5,10 +5,10 @@ enum StatusCode {
 }
 
 class Result {
-  private statusCode: number;
-  private code: number;
-  private message: string;
-  private data?: any;
+  private readonly statusCode: number;
+  private readonly code: number;
+  private readonly message: string;
+  private readonly data?: any;
 
   constructor(statusCode: number, code: number, message: string, data?: any) {
     this.statusCode = statusCode;
@@ -20,7 +20,7 @@ class Result {
   /**
    * Serverless: According to the API Gateway specs, the body content must be stringified
    */
-  bodyToString () {
+  bodyToString(): ResponseVO {
     return {
       statusCode: this.statusCode,
       body: JSON.stringify({
@@ -39,7 +39,7 @@ export class MessageUtil {
     return result.bodyToString();
   }
 
-  static error(code: number = 1000, message: string) {
+  static error(code: number = 1000, message: string): ResponseVO {
     const result = new Result(StatusCode.success, code, message);
 
     console.log(result.bodyToString());

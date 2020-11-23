@@ -6,11 +6,28 @@ provider:
   name: aws
   runtime: nodejs12.x
   region: eu-central-1
+  stage: dev
+  memorySize: 128
+  timeout: 5
+  endpointType: regional
   environment:
     NODE_ENV: dev
+    GOALS_TABLE: ${self:service}-${opt:stage, self:provider.stage}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:PutItem
+        - dynamodb:DeleteItem
+      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.GOALS_TABLE}"
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+      Resource: 'arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.GOALS_TABLE}/index/*'
 
 plugins:
-  - serverless-plugin-typescript 
+  - serverless-plugin-typescript
   - serverless-offline
 
 package:
@@ -21,34 +38,30 @@ package:
     - config/.env.dev
 
 functions:
-  create:
-    handler: app/handler.create
-    events:
-      - http:
-          path: books
-          method: post
-  update:
-    handler: app/handler.update
-    events:
-      - http:
-          path: books/{id}
-          method: put
-  find:
-    handler: app/handler.find
-    events:
-      - http:
-          path: books
-          method: get
   findOne:
-    handler: app/handler.findOne
+    handler: app/handler.findGoal
     events:
       - http:
-          path: books/{id}
+          path: users/{username}
           method: get
 
-  deleteOne:
-    handler: app/handler.deleteOne
-    events:
-      - http:
-          path: books/{id}
-          method: delete
+resources:
+  Resources:
+    GoalsTable:
+      Type: AWS::DynamoDB::Table
+      DeletionPolicy: Retain
+      Properties:
+        TableName: ${self:provider.environment.GOALS_TABLE}
+        AttributeDefinitions:
+          - AttributeName: PK
+            AttributeType: S
+          - AttributeName: SK
+            AttributeType: S
+        KeySchema:
+          - AttributeName: PK
+            KeyType: HASH
+          - AttributeName: SK
+            KeyType: RANGE
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
