@@ -15,6 +15,10 @@ const tableName = process.env.GOALS_TABLE;
 const goalsService = new GoalsService(dynamodb, tableName);
 const goalsController = new GoalsController(goalsService);
 
-export const findGoal: Handler = (event: any) => {
+export const findUserWithGoals: Handler = (event: any) => {
   return goalsController.findUserWithGoals(event);
+};
+
+export const createGoal: Handler = (event: any) => {
+  return goalsController.createGoal(event);
 };

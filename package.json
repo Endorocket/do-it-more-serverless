@@ -16,7 +16,7 @@
   "dependencies": {
     "aws-sdk": "^2.797.0",
     "dotenv": "^8.2.0",
-    "mongoose": "^5.9.10"
+    "uuid": "^8.3.1"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.51",

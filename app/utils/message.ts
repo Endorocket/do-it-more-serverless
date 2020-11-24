@@ -1,40 +1,29 @@
-import { ResponseBodyVO, ResponseVO } from '../model/vo/ResponseVo';
+import { ResponseVO, Status } from '../model/vo/ResponseVo';
 
 enum StatusCode {
-  success = 200,
-}
-
-class Result {
-  private readonly statusCode: number;
-  private readonly responseBodyVO: ResponseBodyVO;
-
-  constructor(statusCode: number, responseBodyVO: ResponseBodyVO) {
-    this.statusCode = statusCode;
-    this.responseBodyVO = responseBodyVO;
-  }
-
-  /**
-   * Serverless: According to the API Gateway specs, the body content must be stringified
-   */
-  bodyToString(): ResponseVO {
-    return {
-      statusCode: this.statusCode,
-      body: JSON.stringify(this.responseBodyVO),
-    };
-  }
+  SUCCESS = 200,
+  ERROR = 500
 }
 
 export class MessageUtil {
-  static success(data: object): ResponseVO {
-    const result = new Result(StatusCode.success, { code: 0, message: 'success', data });
-
-    return result.bodyToString();
+  static successWithData(data: object): ResponseVO {
+    return {
+      statusCode: StatusCode.SUCCESS,
+      body: JSON.stringify(data)
+    };
   }
 
-  static error(code: number = 1000, message: string): ResponseVO {
-    const result = new Result(StatusCode.success, { code, message });
+  static success(status: Status = Status.OK): ResponseVO {
+    return {
+      statusCode: StatusCode.SUCCESS,
+      body: JSON.stringify(status)
+    };
+  }
 
-    console.log(result.bodyToString());
-    return result.bodyToString();
+  static error(status: Status = Status.ERROR, message: string = null): ResponseVO {
+    return {
+      statusCode: StatusCode.ERROR,
+      body: JSON.stringify({ status, message })
+    };
   }
 }

@@ -1,7 +1,6 @@
-export class ResponseBodyVO {
-  code: number;
-  message: string;
-  data?: object;
+export enum Status {
+  OK = 'OK',
+  ERROR = 'ERROR'
 }
 
 export class ResponseVO {

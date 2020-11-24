@@ -38,12 +38,18 @@ package:
     - config/.env.dev
 
 functions:
-  findOne:
-    handler: app/handler.findGoal
+  findUserWithGoals:
+    handler: app/handler.findUserWithGoals
     events:
       - http:
           path: users/{username}
           method: get
+  createGoal:
+    handler: app/handler.createGoal
+    events:
+      - http:
+          path: goals
+          method: post
 
 resources:
   Resources:
