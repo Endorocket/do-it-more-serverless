@@ -1,4 +1,4 @@
-import { ResponseVO } from '../model/vo/ResponseVo';
+import { ResponseBodyVO, ResponseVO } from '../model/vo/ResponseVo';
 
 enum StatusCode {
   success = 200,
@@ -6,15 +6,11 @@ enum StatusCode {
 
 class Result {
   private readonly statusCode: number;
-  private readonly code: number;
-  private readonly message: string;
-  private readonly data?: any;
+  private readonly responseBodyVO: ResponseBodyVO;
 
-  constructor(statusCode: number, code: number, message: string, data?: any) {
+  constructor(statusCode: number, responseBodyVO: ResponseBodyVO) {
     this.statusCode = statusCode;
-    this.code = code;
-    this.message = message;
-    this.data = data;
+    this.responseBodyVO = responseBodyVO;
   }
 
   /**
@@ -23,24 +19,20 @@ class Result {
   bodyToString(): ResponseVO {
     return {
       statusCode: this.statusCode,
-      body: JSON.stringify({
-        code: this.code,
-        message: this.message,
-        data: this.data,
-      }),
+      body: JSON.stringify(this.responseBodyVO),
     };
   }
 }
 
 export class MessageUtil {
   static success(data: object): ResponseVO {
-    const result = new Result(StatusCode.success, 0, 'success', data);
+    const result = new Result(StatusCode.success, { code: 0, message: 'success', data });
 
     return result.bodyToString();
   }
 
   static error(code: number = 1000, message: string): ResponseVO {
-    const result = new Result(StatusCode.success, code, message);
+    const result = new Result(StatusCode.success, { code, message });
 
     console.log(result.bodyToString());
     return result.bodyToString();
