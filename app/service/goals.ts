@@ -2,24 +2,10 @@ import { DocumentClient } from 'aws-sdk/clients/dynamodb';
 import { AWSError, Request } from 'aws-sdk';
 import { CreateGoalDTO } from '../model/dto/createGoalDTO';
 import { v4 as uuidv4 } from 'uuid';
+import { Indexes } from '../utils/indexes';
 
 export class GoalsService {
   constructor(private dynamodb: DocumentClient, private tableName: string) {
-  }
-
-  private static readonly USER_PREFIX = 'USER#';
-  private static readonly GOAL_PREFIX = 'GOAL#';
-
-  private static userPK(username: string): string {
-    return GoalsService.USER_PREFIX + username;
-  }
-
-  private static userSK(username: string): string {
-    return GoalsService.USER_PREFIX + username;
-  }
-
-  private static goalSK(goalId: string): string {
-    return GoalsService.GOAL_PREFIX + goalId;
   }
 
   public findGoalsByUsername(username: string): Request<DocumentClient.QueryOutput, AWSError> {
@@ -27,8 +13,8 @@ export class GoalsService {
       TableName: this.tableName,
       KeyConditionExpression: 'PK = :userPK and begins_with(SK, :userGoal)',
       ExpressionAttributeValues: {
-        ':userPK': GoalsService.userPK(username),
-        ':userGoal': GoalsService.GOAL_PREFIX,
+        ':userPK': Indexes.userPK(username),
+        ':userGoal': Indexes.GOAL_PREFIX,
       },
       Limit: 20
     };
@@ -40,8 +26,8 @@ export class GoalsService {
       TableName: this.tableName,
       KeyConditionExpression: 'PK = :userPK and SK = :userSK',
       ExpressionAttributeValues: {
-        ':userPK': GoalsService.userPK(username),
-        ':userSK': GoalsService.userSK(username)
+        ':userPK': Indexes.userPK(username),
+        ':userSK': Indexes.userSK(username)
       },
       Limit: 1
     };
@@ -53,8 +39,8 @@ export class GoalsService {
     const params: DocumentClient.PutItemInput = {
       TableName: this.tableName,
       Item: {
-        PK: GoalsService.userPK(username),
-        SK: GoalsService.goalSK(goalId),
+        PK: Indexes.userPK(username),
+        SK: Indexes.goalSK(goalId),
         GoalId: goalId,
         GoalName: createGoalDTO.GoalName,
         GoalType: createGoalDTO.GoalType,

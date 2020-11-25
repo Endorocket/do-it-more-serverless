@@ -38,6 +38,10 @@ package:
     - config/.env.dev
 
 functions:
+  preSignUpTrigger:
+    handler: app/handler.preSignUpTrigger
+  postConfirmationTrigger:
+    handler: app/handler.postConfirmationTrigger
   findUserWithGoals:
     handler: app/handler.findUserWithGoals
     events:
