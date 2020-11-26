@@ -105,4 +105,50 @@ export class GoalsService {
     }).promise();
     console.log(updateOutput);
   }
+
+  async updatePeriods(username: string): Promise<void> {
+    const goals = await this.dynamodb.query({
+      TableName: this.tableName,
+      KeyConditionExpression: 'PK = :userPK and begins_with(SK, :userGoal)',
+      ExpressionAttributeValues: {
+        ':userPK': Indexes.userPK(username),
+        ':userGoal': Indexes.GOAL_PREFIX,
+      },
+      Limit: 20
+    }).promise();
+
+    const now = new Date();
+    for (const goal of goals.Items) {
+      const periodOfYear = DatesUtil.getPeriodOfYear(goal.Frequency, now);
+      const inactivePeriod = await this.checkPeriod(goal.GoalId, now, periodOfYear);
+      if (inactivePeriod) {
+        await this.createPeriod(goal.GoalId, now, periodOfYear);
+      }
+    }
+  }
+
+  private async checkPeriod(goalId: string, now: Date, periodOfYear: number): Promise<boolean> {
+    const periodOutput = await this.dynamodb.get({
+      TableName: this.tableName,
+      Key: {
+        PK: Indexes.periodPK(goalId),
+        SK: Indexes.periodSK(now.getFullYear(), periodOfYear)
+      }
+    }).promise();
+    return !periodOutput.Item;
+  }
+
+  private async createPeriod(goalId: string, now: Date, periodOfYear: number): Promise<void> {
+    const createPeriodOutput = await this.dynamodb.put({
+      TableName: this.tableName,
+      Item: {
+        PK: Indexes.periodPK(goalId),
+        SK: Indexes.periodSK(now.getFullYear(), periodOfYear),
+        DoneTimes: 0,
+        Events: {}
+      },
+      ReturnValues: 'ALL_OLD'
+    }).promise();
+    console.log(createPeriodOutput);
+  }
 }

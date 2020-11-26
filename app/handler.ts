@@ -41,3 +41,7 @@ export const createGoal: Handler = (event: any) => {
 export const completeGoal: Handler = (event: any) => {
   return goalsController.completeGoal(event);
 };
+
+export const updatePeriods: Handler = (event: any) => {
+  return goalsController.updatePeriods(event);
+};

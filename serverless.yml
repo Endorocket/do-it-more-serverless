@@ -68,6 +68,14 @@ functions:
           method: patch
           authorizer:
             arn: ${param:cognitoUserPoolArn}
+  updatePeriods:
+    handler: app/handler.updatePeriods
+    events:
+      - http:
+          path: periods
+          method: post
+          authorizer:
+            arn: ${param:cognitoUserPoolArn}
 
 resources:
   Resources:

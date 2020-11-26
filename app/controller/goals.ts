@@ -83,4 +83,16 @@ export class GoalsController {
       return MessageUtil.error(Status.ERROR, err.message);
     }
   }
+
+  async updatePeriods(event: any): Promise<ResponseVO> {
+    try {
+      const username: string = GoalsController.getUsernameClaim(event);
+      await this.goalsService.updatePeriods(username);
+
+      return MessageUtil.success();
+    } catch (err) {
+      console.error(err);
+      return MessageUtil.error(Status.ERROR, err.message);
+    }
+  }
 }
