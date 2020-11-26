@@ -27,8 +27,8 @@ provider:
       Resource: 'arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.GOALS_TABLE}/index/*'
 
 plugins:
-  - serverless-plugin-typescript
   - serverless-offline
+  - serverless-plugin-typescript
 
 package:
   exclude:
@@ -46,14 +46,18 @@ functions:
     handler: app/handler.findUserWithGoals
     events:
       - http:
-          path: users/{username}
+          path: user
           method: get
+          authorizer:
+            arn: ${param:cognitoUserPoolArn}
   createGoal:
     handler: app/handler.createGoal
     events:
       - http:
           path: goals
           method: post
+          authorizer:
+            arn: ${param:cognitoUserPoolArn}
 
 resources:
   Resources:

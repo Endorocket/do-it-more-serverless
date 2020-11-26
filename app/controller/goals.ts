@@ -10,9 +10,10 @@ export class GoalsController {
   }
 
   async findUserWithGoals(event: any): Promise<ResponseVO> {
-    const username: string = event.pathParameters.username;
-
     try {
+      console.log(event.requestContext.authorizer.claims);
+      const username: string = event.requestContext.authorizer.claims['cognito:username'];
+
       const userFound = await this.goalsService.findUserByUsername(username).promise();
       console.log(userFound);
 
@@ -51,9 +52,9 @@ export class GoalsController {
 
   async createGoal(event: any): Promise<ResponseVO> {
     try {
+      const username: string = event.requestContext.authorizer.claims['cognito:username'];
       console.log(event.body);
       const createGoalDTO: CreateGoalDTO = JSON.parse(event.body);
-      const username: string = event.headers.app_user_name;
 
       await this.goalsService.createGoal(createGoalDTO, username).promise();
 
