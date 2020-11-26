@@ -2,7 +2,7 @@ import { Handler } from 'aws-lambda';
 import dotenv from 'dotenv';
 import path from 'path';
 
-const dotenvPath = path.join(__dirname, '../', `config/.env.${ process.env.NODE_ENV }`);
+const dotenvPath = path.join(__dirname, '../', `config/.env.${process.env.NODE_ENV}`);
 dotenv.config({ path: dotenvPath });
 
 import { DocumentClient } from 'aws-sdk/clients/dynamodb';
@@ -36,4 +36,8 @@ export const findUserWithGoals: Handler = (event: any) => {
 
 export const createGoal: Handler = (event: any) => {
   return goalsController.createGoal(event);
+};
+
+export const completeGoal: Handler = (event: any) => {
+  return goalsController.completeGoal(event);
 };

@@ -17,7 +17,9 @@ provider:
     - Effect: Allow
       Action:
         - dynamodb:Query
+        - dynamodb:GetItem
         - dynamodb:PutItem
+        - dynamodb:UpdateItem
         - dynamodb:DeleteItem
       Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.GOALS_TABLE}"
     - Effect: Allow
@@ -56,6 +58,14 @@ functions:
       - http:
           path: goals
           method: post
+          authorizer:
+            arn: ${param:cognitoUserPoolArn}
+  completeGoal:
+    handler: app/handler.completeGoal
+    events:
+      - http:
+          path: goals/{goalId}
+          method: patch
           authorizer:
             arn: ${param:cognitoUserPoolArn}
 
