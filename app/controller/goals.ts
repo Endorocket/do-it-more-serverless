@@ -56,8 +56,7 @@ export class GoalsController {
 
   async createGoal(event: any): Promise<ResponseVO> {
     try {
-      // const username: string = GoalsController.getUsernameClaim(event);
-      const username = 'Endorocket';
+      const username: string = GoalsController.getUsernameClaim(event);
       console.log(event.body);
       const createGoalDTO: CreateGoalDTO = JSON.parse(event.body);
 
@@ -72,8 +71,7 @@ export class GoalsController {
 
   async completeGoal(event: any): Promise<ResponseVO> {
     try {
-      // const username: string = GoalsController.getUsernameClaim(event);
-      const username = 'Endorocket';
+      const username: string = GoalsController.getUsernameClaim(event);
       const goalId: string = event.pathParameters.goalId;
       const completeGoalDTO: CompleteGoalDTO = JSON.parse(event.body);
 
