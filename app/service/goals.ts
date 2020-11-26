@@ -122,6 +122,7 @@ export class GoalsService {
       const periodOfYear = DatesUtil.getPeriodOfYear(goal.Frequency, now);
       const inactivePeriod = await this.checkPeriod(goal.GoalId, now, periodOfYear);
       if (inactivePeriod) {
+        await this.resetGoalDoneTimes(username, goal.GoalId);
         await this.createPeriod(goal.GoalId, now, periodOfYear);
       }
     }
@@ -136,6 +137,22 @@ export class GoalsService {
       }
     }).promise();
     return !periodOutput.Item;
+  }
+
+  private async resetGoalDoneTimes(username: string, goalId: string): Promise<void> {
+    const resetGoalDoneTimesOutput = await this.dynamodb.update({
+      TableName: this.tableName,
+      Key: {
+        PK: Indexes.goalPK(username),
+        SK: Indexes.goalSK(goalId)
+      },
+      UpdateExpression: 'SET DoneTimes = :times',
+      ExpressionAttributeValues: {
+        ':times': 0
+      },
+      ReturnValues: 'UPDATED_NEW'
+    }).promise();
+    console.log(resetGoalDoneTimesOutput);
   }
 
   private async createPeriod(goalId: string, now: Date, periodOfYear: number): Promise<void> {
