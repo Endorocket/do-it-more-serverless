@@ -3,6 +3,7 @@ import { DocumentClient } from 'aws-sdk/clients/dynamodb';
 import { CreateUserDTO } from '../model/dto/createUserDTO';
 import { Indexes } from '../utils/indexes';
 import { GoalType } from '../model/goal';
+import { UpdateProgressDTO } from '../model/dto/updateProgressDTO';
 
 export class UserService {
   constructor(private dynamodb: DocumentClient, private tableName: string) {
@@ -42,5 +43,20 @@ export class UserService {
       }
     };
     return this.dynamodb.put(params);
+  }
+
+  updateProgress(updateProgressDTO: UpdateProgressDTO, username: string): Request<DocumentClient.PutItemOutput, AWSError> {
+    return this.dynamodb.put({
+      TableName: this.tableName,
+      Item: {
+        Level: updateProgressDTO.Level,
+        Progress: updateProgressDTO.Progress
+      },
+      ConditionExpression: 'PK = :PK and SK = :SK',
+      ExpressionAttributeValues: {
+        ':PK': Indexes.userPK(username),
+        ':SK': Indexes.userSK(username)
+      },
+    });
   }
 }

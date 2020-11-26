@@ -5,18 +5,15 @@ import { UserModel } from '../model/user';
 import { GoalModel } from '../model/goal';
 import { CreateGoalDTO } from '../model/dto/createGoalDTO';
 import { CompleteGoalDTO } from '../model/dto/completeGoalDTO';
+import { AuthUtil } from '../utils/auth';
 
 export class GoalsController {
   constructor(private goalsService: GoalsService) {
   }
 
-  private static getUsernameClaim(event: any): string {
-    return event.requestContext.authorizer.claims['cognito:username'];
-  }
-
   async findUserWithGoals(event: any): Promise<ResponseVO> {
     try {
-      const username: string = GoalsController.getUsernameClaim(event);
+      const username: string = AuthUtil.getUsernameClaim(event);
 
       const userFound = await this.goalsService.findUserByUsername(username).promise();
       console.log(userFound);
@@ -56,7 +53,7 @@ export class GoalsController {
 
   async createGoal(event: any): Promise<ResponseVO> {
     try {
-      const username: string = GoalsController.getUsernameClaim(event);
+      const username: string = AuthUtil.getUsernameClaim(event);
       console.log(event.body);
       const createGoalDTO: CreateGoalDTO = JSON.parse(event.body);
 
@@ -71,7 +68,7 @@ export class GoalsController {
 
   async completeGoal(event: any): Promise<ResponseVO> {
     try {
-      const username: string = GoalsController.getUsernameClaim(event);
+      const username: string = AuthUtil.getUsernameClaim(event);
       const goalId: string = event.pathParameters.goalId;
       const completeGoalDTO: CompleteGoalDTO = JSON.parse(event.body);
 
@@ -86,7 +83,7 @@ export class GoalsController {
 
   async updatePeriods(event: any): Promise<ResponseVO> {
     try {
-      const username: string = GoalsController.getUsernameClaim(event);
+      const username: string = AuthUtil.getUsernameClaim(event);
       await this.goalsService.updatePeriods(username);
 
       return MessageUtil.success();

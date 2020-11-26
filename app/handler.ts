@@ -45,3 +45,23 @@ export const completeGoal: Handler = (event: any) => {
 export const updatePeriods: Handler = (event: any) => {
   return goalsController.updatePeriods(event);
 };
+
+export const updateProgress: Handler = (event: any) => {
+  return userController.updateProgress(event);
+};
+
+export const inviteFriend: Handler = (event: any) => {
+  console.log(event); // TODO
+};
+
+export const respondToFriendInvitation: Handler = (event: any) => {
+  console.log(event); // TODO
+};
+
+export const inviteToSharedGoal: Handler = (event: any) => {
+  console.log(event); // TODO
+};
+
+export const respondToSharedGoalInvitation: Handler = (event: any) => {
+  console.log(event); // TODO
+};

@@ -44,6 +44,14 @@ functions:
     handler: app/handler.preSignUpTrigger
   postConfirmationTrigger:
     handler: app/handler.postConfirmationTrigger
+  updateProgress:
+    handler: app/handler.updateProgress
+    events:
+      - http:
+          path: user/progress
+          method: put
+          authorizer:
+            arn: ${param:cognitoUserPoolArn}
   findUserWithGoals:
     handler: app/handler.findUserWithGoals
     events:
