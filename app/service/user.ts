@@ -9,6 +9,19 @@ export class UserService {
   constructor(private dynamodb: DocumentClient, private tableName: string) {
   }
 
+  findUserByUsername(username: string): Request<DocumentClient.QueryOutput, AWSError> {
+    const params: DocumentClient.QueryInput = {
+      TableName: this.tableName,
+      KeyConditionExpression: 'PK = :userPK and SK = :userSK',
+      ExpressionAttributeValues: {
+        ':userPK': Indexes.userPK(username),
+        ':userSK': Indexes.userSK(username)
+      },
+      Limit: 1
+    };
+    return this.dynamodb.query(params);
+  }
+
   createUser(createUserDTO: CreateUserDTO): Request<DocumentClient.PutItemOutput, AWSError> {
     const params: DocumentClient.PutItemInput = {
       TableName: this.tableName,

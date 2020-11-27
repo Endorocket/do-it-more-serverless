@@ -25,19 +25,6 @@ export class GoalsService {
     return this.dynamodb.query(params);
   }
 
-  findUserByUsername(username: string): Request<DocumentClient.QueryOutput, AWSError> {
-    const params: DocumentClient.QueryInput = {
-      TableName: this.tableName,
-      KeyConditionExpression: 'PK = :userPK and SK = :userSK',
-      ExpressionAttributeValues: {
-        ':userPK': Indexes.userPK(username),
-        ':userSK': Indexes.userSK(username)
-      },
-      Limit: 1
-    };
-    return this.dynamodb.query(params);
-  }
-
   async createGoal(createGoalDTO: CreateGoalDTO, username: string): Promise<void> {
     const now = new Date();
     const goalId: string = uuidv4();
@@ -58,18 +45,7 @@ export class GoalsService {
     }).promise();
     console.log(createGoalOutput);
     const periodOfYear = DatesUtil.getPeriodOfYear(createGoalDTO.Frequency, now);
-    console.log(periodOfYear);
-    const createPeriodOutput = await this.dynamodb.put({
-      TableName: this.tableName,
-      Item: {
-        PK: Indexes.periodPK(goalId),
-        SK: Indexes.periodSK(now.getFullYear(), periodOfYear),
-        DoneTimes: 0,
-        Events: {}
-      },
-      ReturnValues: 'ALL_OLD'
-    }).promise();
-    console.log(createPeriodOutput);
+    await this.createPeriod(goalId, now, periodOfYear);
   }
 
   async completeGoal(completeGoalDTO: CompleteGoalDTO, goalId: string, username: string): Promise<void> {
@@ -86,7 +62,29 @@ export class GoalsService {
     if (!goal) {
       throw new Error('Goal not found');
     }
+    await this.updateGoalDoneTimes(username, goalId, completeGoalDTO.Times);
+
     const periodOfYear = DatesUtil.getPeriodOfYear(goal.Frequency, now);
+    await this.updatePeriodDoneTimes(goalId, now, periodOfYear, completeGoalDTO.Times);
+  }
+
+  private async updateGoalDoneTimes(username: string, goalId: string, doneTimes: number): Promise<void> {
+    const updateGoalOutput = await this.dynamodb.update({
+      TableName: this.tableName,
+      Key: {
+        PK: Indexes.goalPK(username),
+        SK: Indexes.goalSK(goalId)
+      },
+      UpdateExpression: 'ADD DoneTimes :times',
+      ExpressionAttributeValues: {
+        ':times': doneTimes
+      },
+      ReturnValues: 'UPDATED_NEW'
+    }).promise();
+    console.log(updateGoalOutput);
+  }
+
+  private async updatePeriodDoneTimes(goalId: string, now: Date, periodOfYear: number, doneTimes: number ): Promise<void> {
     const updateOutput = await this.dynamodb.update({
       TableName: this.tableName,
       Key: {
@@ -99,7 +97,7 @@ export class GoalsService {
         '#eventIndex': `${now.getFullYear()}-${now.getMonth()}-${now.getDay()}`
       },
       ExpressionAttributeValues: {
-        ':times': completeGoalDTO.Times
+        ':times': doneTimes
       },
       ReturnValues: 'UPDATED_NEW'
     }).promise();
@@ -107,17 +105,8 @@ export class GoalsService {
   }
 
   async updatePeriods(username: string): Promise<void> {
-    const goals = await this.dynamodb.query({
-      TableName: this.tableName,
-      KeyConditionExpression: 'PK = :userPK and begins_with(SK, :userGoal)',
-      ExpressionAttributeValues: {
-        ':userPK': Indexes.userPK(username),
-        ':userGoal': Indexes.GOAL_PREFIX,
-      },
-      Limit: 20
-    }).promise();
-
     const now = new Date();
+    const goals = await this.findGoalsByUsername(username).promise();
     for (const goal of goals.Items) {
       const periodOfYear = DatesUtil.getPeriodOfYear(goal.Frequency, now);
       const inactivePeriod = await this.checkPeriod(goal.GoalId, now, periodOfYear);

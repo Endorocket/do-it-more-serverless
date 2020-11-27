@@ -6,16 +6,17 @@ import { GoalModel } from '../model/goal';
 import { CreateGoalDTO } from '../model/dto/createGoalDTO';
 import { CompleteGoalDTO } from '../model/dto/completeGoalDTO';
 import { AuthUtil } from '../utils/auth';
+import { UserService } from '../service/user';
 
 export class GoalsController {
-  constructor(private goalsService: GoalsService) {
+  constructor(private goalsService: GoalsService, private userService: UserService) {
   }
 
   async findUserWithGoals(event: any): Promise<ResponseVO> {
     try {
       const username: string = AuthUtil.getUsernameClaim(event);
 
-      const userFound = await this.goalsService.findUserByUsername(username).promise();
+      const userFound = await this.userService.findUserByUsername(username).promise();
       console.log(userFound);
 
       const userData = userFound.Items[0];
