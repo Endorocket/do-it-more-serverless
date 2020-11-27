@@ -4,6 +4,8 @@ import { CreateUserDTO } from '../model/dto/createUserDTO';
 import { Indexes } from '../utils/indexes';
 import { GoalType } from '../model/goal';
 import { UpdateProgressDTO } from '../model/dto/updateProgressDTO';
+import { FriendStatus } from '../model/user';
+import { Status } from '../model/vo/responseVo';
 
 export class UserService {
   constructor(private dynamodb: DocumentClient, private tableName: string) {
@@ -69,6 +71,35 @@ export class UserService {
       ExpressionAttributeValues: {
         ':PK': Indexes.userPK(username),
         ':SK': Indexes.userSK(username)
+      },
+    });
+  }
+
+  async inviteFriend(friendName: string, username: string): Promise<void> {
+    const friendToInvite = await this.dynamodb.get({
+      TableName: this.tableName,
+      Key: {
+        PK: Indexes.userPK(username),
+        SK: Indexes.userSK(friendName)
+      },
+    }).promise();
+    if (!friendToInvite.Item) {
+      throw new Error(Status.NOT_FOUND);
+    }
+    this.dynamodb.put({
+      TableName: this.tableName,
+      Item: {
+        PK: Indexes.friendPK(username),
+        SK: Indexes.friendSK(friendName),
+        Status: FriendStatus.INVITED
+      },
+    });
+    this.dynamodb.put({
+      TableName: this.tableName,
+      Item: {
+        PK: Indexes.friendPK(friendName),
+        SK: Indexes.friendSK(username),
+        Status: FriendStatus.INVITING
       },
     });
   }

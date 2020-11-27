@@ -20,7 +20,7 @@ const goalsService = new GoalsService(dynamodb, tableName);
 
 const authController = new AuthController();
 const userController = new UserController(userService);
-const goalsController = new GoalsController(goalsService);
+const goalsController = new GoalsController(goalsService, userService);
 
 export const preSignUpTrigger: Handler = (event: any) => {
   return authController.preSignUp(event);
@@ -51,7 +51,7 @@ export const updateProgress: Handler = (event: any) => {
 };
 
 export const inviteFriend: Handler = (event: any) => {
-  console.log(event); // TODO
+  return userController.inviteFriend(event);
 };
 
 export const respondToFriendInvitation: Handler = (event: any) => {

@@ -1,9 +1,4 @@
-import { ResponseVO, Status } from '../model/vo/responseVo';
-
-enum StatusCode {
-  SUCCESS = 200,
-  ERROR = 500
-}
+import { ResponseVO, Status, StatusCode } from '../model/vo/responseVo';
 
 export class MessageUtil {
   static successWithData(data: object): ResponseVO {
@@ -20,9 +15,9 @@ export class MessageUtil {
     };
   }
 
-  static error(status: Status = Status.ERROR, message: string = null): ResponseVO {
+  static error(status: Status = Status.ERROR, statusCode: StatusCode = StatusCode.ERROR, message: string = null): ResponseVO {
     return {
-      statusCode: StatusCode.ERROR,
+      statusCode,
       body: JSON.stringify({ status, message })
     };
   }

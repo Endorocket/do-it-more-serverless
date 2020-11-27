@@ -14,3 +14,9 @@ export interface Progress {
   Achieved: number;
   Total: number;
 }
+
+export enum FriendStatus {
+  INVITING = 'INVITING',
+  INVITED = 'INVITED',
+  ACCEPTED = 'ACCEPTED'
+}

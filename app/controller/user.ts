@@ -1,5 +1,5 @@
 import { UserService } from '../service/user';
-import { ResponseVO, Status } from '../model/vo/responseVo';
+import { ResponseVO, Status, StatusCode } from '../model/vo/responseVo';
 import { CreateUserDTO } from '../model/dto/createUserDTO';
 import { AuthUtil } from '../utils/auth';
 import { UpdateProgressDTO } from '../model/dto/updateProgressDTO';
@@ -32,6 +32,23 @@ export class UserController {
       return MessageUtil.success();
     } catch (err) {
       console.error(err);
+      return MessageUtil.error(Status.ERROR, err.message);
+    }
+  }
+
+  async inviteFriend(event: any): Promise<ResponseVO> {
+    try {
+      const username: string = AuthUtil.getUsernameClaim(event);
+      const inviteFriendBody: { friendName: string } = JSON.parse(event.body);
+
+      await this.userService.inviteFriend(inviteFriendBody.friendName, username);
+
+      return MessageUtil.success();
+    } catch (err) {
+      console.error(err);
+      if (err.message === Status.NOT_FOUND) {
+        return MessageUtil.error(Status.NOT_FOUND, StatusCode.NOT_FOUND);
+      }
       return MessageUtil.error(Status.ERROR, err.message);
     }
   }
