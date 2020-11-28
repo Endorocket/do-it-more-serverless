@@ -32,6 +32,7 @@ export class UserService {
       Item: {
         PK: Indexes.userPK(createUserDTO.username),
         SK: Indexes.userSK(createUserDTO.username),
+        Username: createUserDTO.username,
         Avatar: createUserDTO.avatar,
         Level: 1,
         Progress: [

@@ -42,6 +42,7 @@ export class GoalsService {
           GoalId: goalId,
           GoalName: createGoalDTO.goalName,
           GoalType: createGoalDTO.goalType,
+          Icon: createGoalDTO.icon,
           Frequency: createGoalDTO.frequency,
           DoneTimes: 0,
           TotalTimes: createGoalDTO.totalTimes,
@@ -59,6 +60,7 @@ export class GoalsService {
           GoalId: goalId,
           GoalName: createGoalDTO.goalName,
           GoalType: createGoalDTO.goalType,
+          Icon: createGoalDTO.icon,
           Frequency: createGoalDTO.frequency,
           DoneTimes: 0,
           TotalTimes: createGoalDTO.totalTimes,
@@ -234,6 +236,7 @@ export class GoalsService {
       await this.createGoal({
         goalName: goalInfo.GoalName,
         goalType: goalInfo.GoalType,
+        icon: goalInfo.Icon,
         frequency: goalInfo.Frequency,
         totalTimes: goalInfo.TotalTimes,
         points: goalInfo.Points,
