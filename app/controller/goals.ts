@@ -7,6 +7,8 @@ import { CreateGoalDTO } from '../model/dto/createGoalDTO';
 import { CompleteGoalDTO } from '../model/dto/completeGoalDTO';
 import { AuthUtil } from '../utils/auth';
 import { UserService } from '../service/user';
+import { InviteToTeamDTO } from '../model/dto/inviteToTeamDTO';
+import { RespondToTeamInvitationDTO } from '../model/dto/respondToTeamInvitationDTO';
 
 export class GoalsController {
   constructor(private goalsService: GoalsService, private userService: UserService) {
@@ -94,13 +96,27 @@ export class GoalsController {
     }
   }
 
-  async inviteToSharedGoal(event: any): Promise<ResponseVO> {
+  async inviteToTeam(event: any): Promise<ResponseVO> {
     try {
       const username: string = AuthUtil.getUsernameClaim(event);
-      const goalId: string = event.pathParameters.goalId;
-      const inviteToSharedGoalBody: { friendUsername: string } = JSON.parse(event.body);
+      const inviteToTeamDTO: InviteToTeamDTO = JSON.parse(event.body);
 
-      await this.goalsService.inviteToSharedGoal(goalId, username, inviteToSharedGoalBody.friendUsername);
+      await this.goalsService.inviteToTeam(inviteToTeamDTO.GoalId, username, inviteToTeamDTO.FriendUsername);
+
+      return MessageUtil.success();
+    } catch (err) {
+      console.error(err);
+      return MessageUtil.error(Status.ERROR, err.message);
+    }
+  }
+
+  async respondToTeamInvitation(event: any): Promise<ResponseVO> {
+    try {
+      const username: string = AuthUtil.getUsernameClaim(event);
+      const teamId: string = event.pathParameters.teamId;
+      const respondToTeamInvitationDTO: RespondToTeamInvitationDTO = JSON.parse(event.body);
+
+      await this.goalsService.respondToTeamInvitation(username, teamId, respondToTeamInvitationDTO.InvitationResponse);
 
       return MessageUtil.success();
     } catch (err) {

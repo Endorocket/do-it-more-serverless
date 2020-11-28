@@ -58,10 +58,10 @@ export const respondToFriendInvitation: Handler = (event: any) => {
   return userController.respondToFriendInvitation(event);
 };
 
-export const inviteToSharedGoal: Handler = (event: any) => {
-  return goalsController.inviteToSharedGoal(event);
+export const inviteToTeam: Handler = (event: any) => {
+  return goalsController.inviteToTeam(event);
 };
 
-export const respondToSharedGoalInvitation: Handler = (event: any) => {
-  console.log(event); // TODO
+export const respondToTeamInvitation: Handler = (event: any) => {
+  return goalsController.respondToTeamInvitation(event);
 };

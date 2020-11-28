@@ -25,8 +25,8 @@ export class Indexes {
     return Indexes.TEAM_PREFIX + teamId;
   }
 
-  static goalGSI1SK(goalId: string): string {
-    return Indexes.GOAL_PREFIX + goalId;
+  static goalGSI1SK(username: string): string {
+    return Indexes.USER_PREFIX + username;
   }
 
   static periodPK(goalId: string): string {

@@ -6,7 +6,8 @@ import { GoalType } from '../model/goal';
 import { UpdateProgressDTO } from '../model/dto/updateProgressDTO';
 import { FriendStatus } from '../model/user';
 import { Status } from '../model/vo/responseVo';
-import { RespondToFriendInvitationDTO, ResponseType } from '../model/dto/respondToFriendInvitationDTO';
+import { RespondToFriendInvitationDTO } from '../model/dto/respondToFriendInvitationDTO';
+import { ResponseType } from '../model/dto/responseType';
 
 export class UserService {
   constructor(private dynamodb: DocumentClient, private tableName: string) {

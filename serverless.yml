@@ -100,11 +100,19 @@ functions:
           method: post
           authorizer:
             arn: ${param:cognitoUserPoolArn}
-  inviteToSharedGoal:
-    handler: app/handler.inviteToSharedGoal
+  inviteToTeam:
+    handler: app/handler.inviteToTeam
     events:
       - http:
-          path: goal/{goalId}/share
+          path: teams
+          method: post
+          authorizer:
+            arn: ${param:cognitoUserPoolArn}
+  respondToTeamInvitation:
+    handler: app/handler.respondToTeamInvitation
+    events:
+      - http:
+          path: teams/{teamId}/respond
           method: post
           authorizer:
             arn: ${param:cognitoUserPoolArn}

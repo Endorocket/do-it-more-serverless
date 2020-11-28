@@ -6,4 +6,5 @@ export interface CreateGoalDTO {
   Frequency: Frequency;
   TotalTimes: number;
   Points: number;
+  TeamId?: string;
 }

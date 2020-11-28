@@ -7,6 +7,8 @@ import { CreateGoalDTO } from '../model/dto/createGoalDTO';
 import { CompleteGoalDTO } from '../model/dto/completeGoalDTO';
 import { Indexes } from '../utils/indexes';
 import { DatesUtil } from '../utils/dates';
+import { ResponseType } from '../model/dto/responseType';
+import { Status } from '../model/vo/responseVo';
 
 export class GoalsService {
   constructor(private dynamodb: DocumentClient, private tableName: string) {
@@ -28,21 +30,43 @@ export class GoalsService {
   async createGoal(createGoalDTO: CreateGoalDTO, username: string): Promise<void> {
     const now = new Date();
     const goalId: string = uuidv4();
-    const createGoalOutput = await this.dynamodb.put({
-      TableName: this.tableName,
-      Item: {
-        PK: Indexes.goalPK(username),
-        SK: Indexes.goalSK(goalId),
-        GoalId: goalId,
-        GoalName: createGoalDTO.GoalName,
-        GoalType: createGoalDTO.GoalType,
-        Frequency: createGoalDTO.Frequency,
-        DoneTimes: 0,
-        TotalTimes: createGoalDTO.TotalTimes,
-        Points: createGoalDTO.Points
-      },
-      ReturnValues: 'ALL_OLD'
-    }).promise();
+    if (createGoalDTO.TeamId) {
+
+    }
+    const createGoalParams = createGoalDTO.TeamId
+      ? {
+        TableName: this.tableName,
+        Item: {
+          PK: Indexes.goalPK(username),
+          SK: Indexes.goalSK(goalId),
+          GoalId: goalId,
+          GoalName: createGoalDTO.GoalName,
+          GoalType: createGoalDTO.GoalType,
+          Frequency: createGoalDTO.Frequency,
+          DoneTimes: 0,
+          TotalTimes: createGoalDTO.TotalTimes,
+          Points: createGoalDTO.Points,
+          GSI1PK: Indexes.goalGSI1PK(createGoalDTO.TeamId),
+          GSI1SK: Indexes.goalGSI1SK(username)
+        },
+        ReturnValues: 'ALL_OLD'
+      }
+      : {
+        TableName: this.tableName,
+        Item: {
+          PK: Indexes.goalPK(username),
+          SK: Indexes.goalSK(goalId),
+          GoalId: goalId,
+          GoalName: createGoalDTO.GoalName,
+          GoalType: createGoalDTO.GoalType,
+          Frequency: createGoalDTO.Frequency,
+          DoneTimes: 0,
+          TotalTimes: createGoalDTO.TotalTimes,
+          Points: createGoalDTO.Points
+        },
+        ReturnValues: 'ALL_OLD'
+      };
+    const createGoalOutput = await this.dynamodb.put(createGoalParams).promise();
     console.log(createGoalOutput);
     const periodOfYear = DatesUtil.getPeriodOfYear(createGoalDTO.Frequency, now);
     await this.createPeriod(goalId, now, periodOfYear);
@@ -158,7 +182,7 @@ export class GoalsService {
     console.log(createPeriodOutput);
   }
 
-  async inviteToSharedGoal(goalId: string, username: string, friendUsername: string): Promise<void> {
+  async inviteToTeam(goalId: string, username: string, friendUsername: string): Promise<void> {
     const teamId: string = uuidv4();
     await this.addToTeam(teamId, username, 'MEMBER');
     await this.addToTeam(teamId, friendUsername, 'INVITED');
@@ -171,6 +195,7 @@ export class GoalsService {
       Item: {
         PK: Indexes.teamPK(teamId),
         SK: Indexes.teamSK(username),
+        Username: username,
         TeamId: teamId,
         Status: status,
         GSI1PK: Indexes.teamGSI1PK(username),
@@ -191,10 +216,96 @@ export class GoalsService {
       UpdateExpression: 'SET GSI1PK = :gsi1PK, GSI1SK = :gsi1SK',
       ExpressionAttributeValues: {
         ':gsi1PK': Indexes.goalGSI1PK(teamId),
-        ':gsi1SK': Indexes.goalGSI1SK(goalId)
+        ':gsi1SK': Indexes.goalGSI1SK(username)
       },
       ReturnValues: 'UPDATED_NEW'
     }).promise();
     console.log(resetGoalDoneTimesOutput);
+  }
+
+  async respondToTeamInvitation(username: string, teamId: string, invitationResponse: ResponseType): Promise<void> {
+    if (invitationResponse === ResponseType.ACCEPT) {
+      const goalsOutput = await this.getGoal(teamId).promise();
+      const goalInfo = goalsOutput.Items[0];
+      if (!goalInfo) {
+        throw new Error(Status.NOT_FOUND);
+      }
+      await this.updateTeamInvitationStatus(username, teamId);
+      await this.createGoal({
+        GoalName: goalInfo.GoalName,
+        GoalType: goalInfo.GoalType,
+        Frequency: goalInfo.Frequency,
+        TotalTimes: goalInfo.TotalTimes,
+        Points: goalInfo.Points,
+        TeamId: teamId
+      }, username);
+    } else {
+      const teamMembers = await this.dynamodb.query({
+        TableName: this.tableName,
+        KeyConditionExpression: 'PK = :teamIndex and begins_with(SK, :user)',
+        ExpressionAttributeValues: {
+          ':teamIndex': Indexes.teamPK(teamId),
+          ':user': Indexes.USER_PREFIX,
+        },
+        Limit: 2
+      }).promise();
+      for (const teamMember of teamMembers.Items) {
+        await this.removeFromTeam(teamId, teamMember.Username);
+        if (teamMember.Username !== username) {
+          await this.removeGS1FromGoal(teamId, teamMember.Username);
+        }
+      }
+    }
+  }
+
+  private getGoal(teamId: string): Request<DocumentClient.QueryOutput, AWSError> {
+    return this.dynamodb.query({
+      TableName: this.tableName,
+      KeyConditionExpression: 'GSI1PK = :gsi1PK and begins_with(GSI1SK, :gsi1SK)',
+      ExpressionAttributeValues: {
+        ':gsi1PK': Indexes.goalGSI1PK(teamId),
+        ':gsi1SK': Indexes.GOAL_PREFIX,
+      },
+      Limit: 1
+    });
+  }
+
+  private async updateTeamInvitationStatus(username: string, teamId: string): Promise<void> {
+    const updateStatusOutput = await this.dynamodb.update({
+      TableName: this.tableName,
+      Key: {
+        PK: Indexes.teamPK(teamId),
+        SK: Indexes.teamSK(username)
+      },
+      UpdateExpression: 'SET Status = :status',
+      ExpressionAttributeValues: {
+        ':status': 'MEMBER'
+      },
+      ReturnValues: 'UPDATED_NEW'
+    }).promise();
+    console.log(updateStatusOutput);
+  }
+
+  private async removeFromTeam(teamId: string, username: string): Promise<void> {
+    await this.dynamodb.delete({
+      TableName: this.tableName,
+      Key: {
+        PK: Indexes.teamPK(teamId),
+        SK: Indexes.teamSK(username)
+      }
+    }).promise();
+  }
+
+  private async removeGS1FromGoal(teamId: string, username: string): Promise<void> {
+    const removeGSI1Output = await this.dynamodb.update({
+      TableName: this.tableName,
+      Key: {
+        GSI1PK: Indexes.goalGSI1PK(teamId),
+        GSI1SK: Indexes.goalGSI1SK(username)
+      },
+      UpdateExpression: 'REMOVE GSI1PK, GSI1SK',
+      ReturnValues: 'UPDATED_NEW'
+    }).promise();
+    console.log(removeGSI1Output);
   }
 }
