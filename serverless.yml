@@ -57,6 +57,7 @@ functions:
           method: put
           authorizer:
             arn: ${param:cognitoUserPoolArn}
+          cors: true
   findUserWithGoals:
     handler: app/handler.findUserWithGoals
     events:
@@ -65,6 +66,7 @@ functions:
           method: get
           authorizer:
             arn: ${param:cognitoUserPoolArn}
+          cors: true
   createGoal:
     handler: app/handler.createGoal
     events:
@@ -73,6 +75,7 @@ functions:
           method: post
           authorizer:
             arn: ${param:cognitoUserPoolArn}
+          cors: true
   completeGoal:
     handler: app/handler.completeGoal
     events:
@@ -81,6 +84,7 @@ functions:
           method: patch
           authorizer:
             arn: ${param:cognitoUserPoolArn}
+          cors: true
   updatePeriods:
     handler: app/handler.updatePeriods
     events:
@@ -89,6 +93,7 @@ functions:
           method: post
           authorizer:
             arn: ${param:cognitoUserPoolArn}
+          cors: true
   inviteFriend:
     handler: app/handler.inviteFriend
     events:
@@ -97,6 +102,7 @@ functions:
           method: post
           authorizer:
             arn: ${param:cognitoUserPoolArn}
+          cors: true
   respondToFriendInvitation:
     handler: app/handler.respondToFriendInvitation
     events:
@@ -105,6 +111,7 @@ functions:
           method: post
           authorizer:
             arn: ${param:cognitoUserPoolArn}
+          cors: true
   inviteToTeam:
     handler: app/handler.inviteToTeam
     events:
@@ -113,6 +120,7 @@ functions:
           method: post
           authorizer:
             arn: ${param:cognitoUserPoolArn}
+          cors: true
   respondToTeamInvitation:
     handler: app/handler.respondToTeamInvitation
     events:
@@ -121,6 +129,7 @@ functions:
           method: post
           authorizer:
             arn: ${param:cognitoUserPoolArn}
+          cors: true
 
 resources:
   Resources:
@@ -158,3 +167,13 @@ resources:
             ProvisionedThroughput:
               ReadCapacityUnits: 1
               WriteCapacityUnits: 1
+
+    GatewayResponseDefault4XX:
+      Type: AWS::ApiGateway::GatewayResponse
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseType: DEFAULT_4XX
+        RestApiId:
+          Ref: 'ApiGatewayRestApi'

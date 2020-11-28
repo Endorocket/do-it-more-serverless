@@ -12,5 +12,6 @@ export enum StatusCode {
 
 export class ResponseVO {
   statusCode: number;
+  headers: object;
   body: string;
 }
