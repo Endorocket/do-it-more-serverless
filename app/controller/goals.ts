@@ -30,6 +30,7 @@ export class GoalsController {
         return {
           id: item.GoalId,
           name: item.GoalName,
+          icon: item.Icon,
           type: item.GoalType,
           frequency: item.Frequency,
           doneTimes: item.DoneTimes,

@@ -1,6 +1,7 @@
 export interface GoalModel {
   id: string;
   name: string;
+  icon: string;
   type: GoalType;
   frequency: Frequency;
   doneTimes: number;
