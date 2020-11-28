@@ -1,18 +1,17 @@
 import { GoalModel, GoalType } from './goal';
 
 export interface UserModel {
-  Username: string;
-  Email: string;
-  Avatar: string;
-  Level: number;
-  Progress: Progress[];
-  Goals: GoalModel[];
+  username: string;
+  avatar: string;
+  level: number;
+  progress: Progress[];
+  goals: GoalModel[];
 }
 
 export interface Progress {
-  Type: GoalType;
-  Achieved: number;
-  Total: number;
+  type: GoalType;
+  achieved: number;
+  total: number;
 }
 
 export enum FriendStatus {

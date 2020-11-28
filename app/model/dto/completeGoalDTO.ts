@@ -1,3 +1,3 @@
 export interface CompleteGoalDTO {
-  Times: number;
+  times: number;
 }

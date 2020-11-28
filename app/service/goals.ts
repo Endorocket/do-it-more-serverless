@@ -30,23 +30,23 @@ export class GoalsService {
   async createGoal(createGoalDTO: CreateGoalDTO, username: string): Promise<void> {
     const now = new Date();
     const goalId: string = uuidv4();
-    if (createGoalDTO.TeamId) {
+    if (createGoalDTO.teamId) {
 
     }
-    const createGoalParams = createGoalDTO.TeamId
+    const createGoalParams = createGoalDTO.teamId
       ? {
         TableName: this.tableName,
         Item: {
           PK: Indexes.goalPK(username),
           SK: Indexes.goalSK(goalId),
           GoalId: goalId,
-          GoalName: createGoalDTO.GoalName,
-          GoalType: createGoalDTO.GoalType,
-          Frequency: createGoalDTO.Frequency,
+          GoalName: createGoalDTO.goalName,
+          GoalType: createGoalDTO.goalType,
+          Frequency: createGoalDTO.frequency,
           DoneTimes: 0,
-          TotalTimes: createGoalDTO.TotalTimes,
-          Points: createGoalDTO.Points,
-          GSI1PK: Indexes.goalGSI1PK(createGoalDTO.TeamId),
+          TotalTimes: createGoalDTO.totalTimes,
+          Points: createGoalDTO.points,
+          GSI1PK: Indexes.goalGSI1PK(createGoalDTO.teamId),
           GSI1SK: Indexes.goalGSI1SK(username)
         },
         ReturnValues: 'ALL_OLD'
@@ -57,18 +57,18 @@ export class GoalsService {
           PK: Indexes.goalPK(username),
           SK: Indexes.goalSK(goalId),
           GoalId: goalId,
-          GoalName: createGoalDTO.GoalName,
-          GoalType: createGoalDTO.GoalType,
-          Frequency: createGoalDTO.Frequency,
+          GoalName: createGoalDTO.goalName,
+          GoalType: createGoalDTO.goalType,
+          Frequency: createGoalDTO.frequency,
           DoneTimes: 0,
-          TotalTimes: createGoalDTO.TotalTimes,
-          Points: createGoalDTO.Points
+          TotalTimes: createGoalDTO.totalTimes,
+          Points: createGoalDTO.points
         },
         ReturnValues: 'ALL_OLD'
       };
     const createGoalOutput = await this.dynamodb.put(createGoalParams).promise();
     console.log(createGoalOutput);
-    const periodOfYear = DatesUtil.getPeriodOfYear(createGoalDTO.Frequency, now);
+    const periodOfYear = DatesUtil.getPeriodOfYear(createGoalDTO.frequency, now);
     await this.createPeriod(goalId, now, periodOfYear);
   }
 
@@ -86,10 +86,10 @@ export class GoalsService {
     if (!goal) {
       throw new Error('Goal not found');
     }
-    await this.updateGoalDoneTimes(username, goalId, completeGoalDTO.Times);
+    await this.updateGoalDoneTimes(username, goalId, completeGoalDTO.times);
 
     const periodOfYear = DatesUtil.getPeriodOfYear(goal.Frequency, now);
-    await this.updatePeriodDoneTimes(goalId, now, periodOfYear, completeGoalDTO.Times);
+    await this.updatePeriodDoneTimes(goalId, now, periodOfYear, completeGoalDTO.times);
   }
 
   private async updateGoalDoneTimes(username: string, goalId: string, doneTimes: number): Promise<void> {
@@ -232,12 +232,12 @@ export class GoalsService {
       }
       await this.updateTeamInvitationStatus(username, teamId);
       await this.createGoal({
-        GoalName: goalInfo.GoalName,
-        GoalType: goalInfo.GoalType,
-        Frequency: goalInfo.Frequency,
-        TotalTimes: goalInfo.TotalTimes,
-        Points: goalInfo.Points,
-        TeamId: teamId
+        goalName: goalInfo.GoalName,
+        goalType: goalInfo.GoalType,
+        frequency: goalInfo.Frequency,
+        totalTimes: goalInfo.TotalTimes,
+        points: goalInfo.Points,
+        teamId
       }, username);
     } else {
       const teamMembers = await this.dynamodb.query({

@@ -1,11 +1,11 @@
 export interface GoalModel {
-  GoalId: string;
-  GoalName: string;
-  GoalType: GoalType;
-  Frequency: Frequency;
-  DoneTimes: number;
-  TotalTimes: number;
-  Points: number;
+  goalId: string;
+  goalName: string;
+  goalType: GoalType;
+  frequency: Frequency;
+  doneTimes: number;
+  totalTimes: number;
+  points: number;
 }
 
 export enum GoalType {

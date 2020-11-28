@@ -1,10 +1,10 @@
 import { Frequency, GoalType } from '../goal';
 
 export interface CreateGoalDTO {
-  GoalName: string;
-  GoalType: GoalType;
-  Frequency: Frequency;
-  TotalTimes: number;
-  Points: number;
-  TeamId?: string;
+  goalName: string;
+  goalType: GoalType;
+  frequency: Frequency;
+  totalTimes: number;
+  points: number;
+  teamId?: string;
 }

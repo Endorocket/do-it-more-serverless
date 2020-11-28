@@ -1,6 +1,6 @@
 import { Progress } from '../user';
 
 export interface UpdateProgressDTO {
-  Level: number;
-  Progress: Progress[];
+  level: number;
+  progress: Progress[];
 }

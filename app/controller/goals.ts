@@ -28,23 +28,22 @@ export class GoalsController {
 
       const goalsData: GoalModel[] = goalsFound.Items.map(item => {
         return {
-          GoalId: item.GoalId,
-          GoalName: item.GoalName,
-          GoalType: item.GoalType,
-          Frequency: item.Frequency,
-          DoneTimes: item.DoneTimes,
-          TotalTimes: item.TotalTimes,
-          Points: item.Points
+          goalId: item.GoalId,
+          goalName: item.GoalName,
+          goalType: item.GoalType,
+          frequency: item.Frequency,
+          doneTimes: item.DoneTimes,
+          totalTimes: item.TotalTimes,
+          points: item.Points
         };
       });
 
       const result: UserModel = {
-        Username: userData.Username,
-        Email: userData.Email,
-        Avatar: userData.Avatar,
-        Level: userData.Level,
-        Progress: userData.Progress,
-        Goals: goalsData
+        username: userData.Username,
+        avatar: userData.Avatar,
+        level: userData.Level,
+        progress: userData.Progress,
+        goals: goalsData
       };
 
       return MessageUtil.successWithData(result);
@@ -101,7 +100,7 @@ export class GoalsController {
       const username: string = AuthUtil.getUsernameClaim(event);
       const inviteToTeamDTO: InviteToTeamDTO = JSON.parse(event.body);
 
-      await this.goalsService.inviteToTeam(inviteToTeamDTO.GoalId, username, inviteToTeamDTO.FriendUsername);
+      await this.goalsService.inviteToTeam(inviteToTeamDTO.goalId, username, inviteToTeamDTO.friendUsername);
 
       return MessageUtil.success();
     } catch (err) {
@@ -116,7 +115,7 @@ export class GoalsController {
       const teamId: string = event.pathParameters.teamId;
       const respondToTeamInvitationDTO: RespondToTeamInvitationDTO = JSON.parse(event.body);
 
-      await this.goalsService.respondToTeamInvitation(username, teamId, respondToTeamInvitationDTO.InvitationResponse);
+      await this.goalsService.respondToTeamInvitation(username, teamId, respondToTeamInvitationDTO.invitationResponse);
 
       return MessageUtil.success();
     } catch (err) {

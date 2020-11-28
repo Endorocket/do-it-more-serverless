@@ -14,9 +14,8 @@ export class UserController {
     console.log(event);
     const userAttributes = event.request.userAttributes;
     const createUserDTO: CreateUserDTO = {
-      Username: event.userName,
-      Email: userAttributes.email,
-      Avatar: userAttributes['custom:avatar']
+      username: event.userName,
+      avatar: userAttributes['custom:avatar']
     };
     await this.userService.createUser(createUserDTO).promise();
 

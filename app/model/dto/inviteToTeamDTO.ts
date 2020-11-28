@@ -1,4 +1,4 @@
 export interface InviteToTeamDTO {
-  GoalId: string;
-  FriendUsername: string;
+  goalId: string;
+  friendUsername: string;
 }

@@ -1,6 +1,6 @@
 import { ResponseType } from './responseType';
 
 export interface RespondToFriendInvitationDTO {
-  FriendUsername: string;
-  InvitationResponse: ResponseType;
+  friendUsername: string;
+  invitationResponse: ResponseType;
 }
