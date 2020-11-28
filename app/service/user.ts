@@ -6,6 +6,7 @@ import { GoalType } from '../model/goal';
 import { UpdateProgressDTO } from '../model/dto/updateProgressDTO';
 import { FriendStatus } from '../model/user';
 import { Status } from '../model/vo/responseVo';
+import { RespondToFriendInvitationDTO, ResponseType } from '../model/dto/respondToFriendInvitationDTO';
 
 export class UserService {
   constructor(private dynamodb: DocumentClient, private tableName: string) {
@@ -86,21 +87,68 @@ export class UserService {
     if (!friendToInvite.Item) {
       throw new Error(Status.NOT_FOUND);
     }
-    this.dynamodb.put({
+    await this.dynamodb.put({
       TableName: this.tableName,
       Item: {
         PK: Indexes.friendPK(username),
         SK: Indexes.friendSK(friendName),
         Status: FriendStatus.INVITED
       },
-    });
-    this.dynamodb.put({
+    }).promise();
+    await this.dynamodb.put({
       TableName: this.tableName,
       Item: {
         PK: Indexes.friendPK(friendName),
         SK: Indexes.friendSK(username),
         Status: FriendStatus.INVITING
       },
-    });
+    }).promise();
+  }
+
+  async respondToFriendInvitation(respondToFriendInvitationDTO: RespondToFriendInvitationDTO, username: string): Promise<void> {
+    const friendToRespond = await this.dynamodb.get({
+      TableName: this.tableName,
+      Key: {
+        PK: Indexes.userPK(respondToFriendInvitationDTO.friendName),
+        SK: Indexes.userSK(respondToFriendInvitationDTO.friendName)
+      },
+    }).promise();
+    if (!friendToRespond.Item) {
+      throw new Error(Status.NOT_FOUND);
+    }
+
+    if (respondToFriendInvitationDTO.invitationResponse === ResponseType.ACCEPT) {
+      await this.acceptFriendInvitation(username, respondToFriendInvitationDTO.friendName);
+      await this.acceptFriendInvitation(respondToFriendInvitationDTO.friendName, username);
+    } else {
+      await this.deleteFriend(username, respondToFriendInvitationDTO.friendName);
+      await this.deleteFriend(respondToFriendInvitationDTO.friendName, username);
+    }
+  }
+
+  private async acceptFriendInvitation(username: string, friendName: string): Promise<void> {
+    const acceptFriendOutput = await this.dynamodb.update({
+      TableName: this.tableName,
+      Key: {
+        PK: Indexes.friendPK(username),
+        SK: Indexes.friendSK(friendName)
+      },
+      UpdateExpression: 'SET Status = :status',
+      ExpressionAttributeValues: {
+        ':status': 'ACCEPTED'
+      },
+      ReturnValues: 'UPDATED_NEW'
+    }).promise();
+    console.log(acceptFriendOutput);
+  }
+
+  private async deleteFriend(username: string, friendName: string): Promise<void> {
+    await this.dynamodb.delete({
+      TableName: this.tableName,
+      Key: {
+        PK: Indexes.friendPK(username),
+        SK: Indexes.friendSK(friendName)
+      }
+    }).promise();
   }
 }

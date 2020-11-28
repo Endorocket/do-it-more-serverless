@@ -4,6 +4,7 @@ import { CreateUserDTO } from '../model/dto/createUserDTO';
 import { AuthUtil } from '../utils/auth';
 import { UpdateProgressDTO } from '../model/dto/updateProgressDTO';
 import { MessageUtil } from '../utils/message';
+import { RespondToFriendInvitationDTO } from '../model/dto/respondToFriendInvitationDTO';
 
 export class UserController {
   constructor(private userService: UserService) {
@@ -42,6 +43,23 @@ export class UserController {
       const inviteFriendBody: { friendName: string } = JSON.parse(event.body);
 
       await this.userService.inviteFriend(inviteFriendBody.friendName, username);
+
+      return MessageUtil.success();
+    } catch (err) {
+      console.error(err);
+      if (err.message === Status.NOT_FOUND) {
+        return MessageUtil.error(Status.NOT_FOUND, StatusCode.NOT_FOUND);
+      }
+      return MessageUtil.error(Status.ERROR, err.message);
+    }
+  }
+
+  async respondToFriendInvitation(event: any): Promise<ResponseVO> {
+    try {
+      const username: string = AuthUtil.getUsernameClaim(event);
+      const respondToFriendInvitationDTO: RespondToFriendInvitationDTO = JSON.parse(event.body);
+
+      await this.userService.respondToFriendInvitation(respondToFriendInvitationDTO, username);
 
       return MessageUtil.success();
     } catch (err) {

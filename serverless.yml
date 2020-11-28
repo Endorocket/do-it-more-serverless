@@ -84,6 +84,22 @@ functions:
           method: post
           authorizer:
             arn: ${param:cognitoUserPoolArn}
+  inviteFriend:
+    handler: app/handler.inviteFriend
+    events:
+      - http:
+          path: friends
+          method: post
+          authorizer:
+            arn: ${param:cognitoUserPoolArn}
+  respondToFriendInvitation:
+    handler: app/handler.respondToFriendInvitation
+    events:
+      - http:
+          path: friends/{friendName}/respond
+          method: post
+          authorizer:
+            arn: ${param:cognitoUserPoolArn}
 
 resources:
   Resources:

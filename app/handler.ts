@@ -55,7 +55,7 @@ export const inviteFriend: Handler = (event: any) => {
 };
 
 export const respondToFriendInvitation: Handler = (event: any) => {
-  console.log(event); // TODO
+  return userController.respondToFriendInvitation(event);
 };
 
 export const inviteToSharedGoal: Handler = (event: any) => {
