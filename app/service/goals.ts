@@ -84,7 +84,7 @@ export class GoalsService {
     console.log(updateGoalOutput);
   }
 
-  private async updatePeriodDoneTimes(goalId: string, now: Date, periodOfYear: number, doneTimes: number ): Promise<void> {
+  private async updatePeriodDoneTimes(goalId: string, now: Date, periodOfYear: number, doneTimes: number): Promise<void> {
     const updateOutput = await this.dynamodb.update({
       TableName: this.tableName,
       Key: {
@@ -156,5 +156,45 @@ export class GoalsService {
       ReturnValues: 'ALL_OLD'
     }).promise();
     console.log(createPeriodOutput);
+  }
+
+  async inviteToSharedGoal(goalId: string, username: string, friendUsername: string): Promise<void> {
+    const teamId: string = uuidv4();
+    await this.addToTeam(teamId, username, 'MEMBER');
+    await this.addToTeam(teamId, friendUsername, 'INVITED');
+    await this.assignGoalToTeam(username, teamId, goalId);
+  }
+
+  private async addToTeam(teamId: string, username: string, status: string): Promise<void> {
+    const createPeriodOutput = await this.dynamodb.put({
+      TableName: this.tableName,
+      Item: {
+        PK: Indexes.teamPK(teamId),
+        SK: Indexes.teamSK(username),
+        TeamId: teamId,
+        Status: status,
+        GSI1PK: Indexes.teamGSI1PK(username),
+        GSI1SK: Indexes.teamGSI1SK(teamId),
+      },
+      ReturnValues: 'ALL_OLD'
+    }).promise();
+    console.log(createPeriodOutput);
+  }
+
+  private async assignGoalToTeam(username: string, teamId: string, goalId: string): Promise<void> {
+    const resetGoalDoneTimesOutput = await this.dynamodb.update({
+      TableName: this.tableName,
+      Key: {
+        PK: Indexes.goalPK(username),
+        SK: Indexes.goalSK(goalId)
+      },
+      UpdateExpression: 'SET GSI1PK = :gsi1PK, GSI1SK = :gsi1SK',
+      ExpressionAttributeValues: {
+        ':gsi1PK': Indexes.goalGSI1PK(teamId),
+        ':gsi1SK': Indexes.goalGSI1SK(goalId)
+      },
+      ReturnValues: 'UPDATED_NEW'
+    }).promise();
+    console.log(resetGoalDoneTimesOutput);
   }
 }

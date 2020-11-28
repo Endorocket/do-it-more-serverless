@@ -59,7 +59,7 @@ export const respondToFriendInvitation: Handler = (event: any) => {
 };
 
 export const inviteToSharedGoal: Handler = (event: any) => {
-  console.log(event); // TODO
+  return goalsController.inviteToSharedGoal(event);
 };
 
 export const respondToSharedGoalInvitation: Handler = (event: any) => {

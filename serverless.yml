@@ -100,6 +100,14 @@ functions:
           method: post
           authorizer:
             arn: ${param:cognitoUserPoolArn}
+  inviteToSharedGoal:
+    handler: app/handler.inviteToSharedGoal
+    events:
+      - http:
+          path: goal/{goalId}/share
+          method: post
+          authorizer:
+            arn: ${param:cognitoUserPoolArn}
 
 resources:
   Resources:

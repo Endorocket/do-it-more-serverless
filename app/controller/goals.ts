@@ -93,4 +93,19 @@ export class GoalsController {
       return MessageUtil.error(Status.ERROR, err.message);
     }
   }
+
+  async inviteToSharedGoal(event: any): Promise<ResponseVO> {
+    try {
+      const username: string = AuthUtil.getUsernameClaim(event);
+      const goalId: string = event.pathParameters.goalId;
+      const inviteToSharedGoalBody: { friendUsername: string } = JSON.parse(event.body);
+
+      await this.goalsService.inviteToSharedGoal(goalId, username, inviteToSharedGoalBody.friendUsername);
+
+      return MessageUtil.success();
+    } catch (err) {
+      console.error(err);
+      return MessageUtil.error(Status.ERROR, err.message);
+    }
+  }
 }

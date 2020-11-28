@@ -1,6 +1,6 @@
 import { Frequency, GoalType } from '../goal';
 
-export class CreateGoalDTO {
+export interface CreateGoalDTO {
   GoalName: string;
   GoalType: GoalType;
   Frequency: Frequency;

@@ -1,3 +1,3 @@
-export class CompleteGoalDTO {
+export interface CompleteGoalDTO {
   Times: number;
 }

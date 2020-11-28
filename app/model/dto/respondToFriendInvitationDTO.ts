@@ -1,6 +1,6 @@
-export class RespondToFriendInvitationDTO {
-  friendName: string;
-  invitationResponse: ResponseType;
+export interface RespondToFriendInvitationDTO {
+  FriendUsername: string;
+  InvitationResponse: ResponseType;
 }
 
 export enum ResponseType {
