@@ -28,21 +28,27 @@ export class GoalsController {
 
       const goalsData: GoalModel[] = goalsFound.Items.map(item => {
         return {
-          goalId: item.GoalId,
-          goalName: item.GoalName,
-          goalType: item.GoalType,
+          id: item.GoalId,
+          name: item.GoalName,
+          type: item.GoalType,
           frequency: item.Frequency,
           doneTimes: item.DoneTimes,
           totalTimes: item.TotalTimes,
           points: item.Points
         };
       });
-
+      const progress = userData.Progress.map(singleProgress => {
+        return {
+          type: singleProgress.Type,
+          achieved: singleProgress.Achieved,
+          total: singleProgress.Total
+        };
+      });
       const result: UserModel = {
         username: userData.Username,
         avatar: userData.Avatar,
         level: userData.Level,
-        progress: userData.Progress,
+        progress,
         goals: goalsData
       };
 

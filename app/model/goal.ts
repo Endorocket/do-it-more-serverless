@@ -1,7 +1,7 @@
 export interface GoalModel {
-  goalId: string;
-  goalName: string;
-  goalType: GoalType;
+  id: string;
+  name: string;
+  type: GoalType;
   frequency: Frequency;
   doneTimes: number;
   totalTimes: number;
