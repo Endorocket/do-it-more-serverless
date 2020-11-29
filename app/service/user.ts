@@ -187,6 +187,7 @@ export class UserService {
       });
       friendModels.push({
         username: friendItem.Username,
+        status: friendItem.Status,
         avatar: friendDetails.Avatar,
         level: friendDetails.Level,
         progress

@@ -3,6 +3,7 @@ import { GoalModel, GoalType } from './goal';
 export interface FriendModel {
   username: string;
   avatar: string;
+  status: FriendStatus;
   level: number;
   progress: Progress[];
 }
