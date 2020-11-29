@@ -264,6 +264,7 @@ export class GoalsService {
   private getGoal(teamId: string): Request<DocumentClient.QueryOutput, AWSError> {
     return this.dynamodb.query({
       TableName: this.tableName,
+      IndexName: 'GSI1',
       KeyConditionExpression: 'GSI1PK = :gsi1PK and begins_with(GSI1SK, :gsi1SK)',
       ExpressionAttributeValues: {
         ':gsi1PK': Indexes.goalGSI1PK(teamId),

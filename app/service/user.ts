@@ -232,7 +232,7 @@ export class UserService {
       IndexName: 'GSI1',
       KeyConditionExpression: 'GSI1PK = :teamId and begins_with(GSI1SK, :user)',
       ExpressionAttributeValues: {
-        ':teamId': Indexes.teamGSI1PK(teamId),
+        ':teamId': Indexes.goalGSI1PK(teamId),
         ':user': Indexes.USER_PREFIX
       }
     }).promise();
@@ -248,11 +248,11 @@ export class UserService {
     }
     let goal: TeamGoal;
     for (const goalInTeam of goalsInTeam.Items) {
-      const username: string = goalInTeam.Username;
+      const username: string = goalInTeam.PK.split('#')[1];
       const teamMember = teamMembersByUsername.get(username);
       teamMember.doneTimes = goalInTeam.DoneTimes;
       teamMember.totalTimes = goalInTeam.TotalTimes;
-      if (goal !== undefined) {
+      if (goal === undefined) {
         goal = {
           name: goalInTeam.GoalName,
           icon: goalInTeam.Icon,
