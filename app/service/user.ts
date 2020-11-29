@@ -199,6 +199,7 @@ export class UserService {
   private async getTeams(username: string): Promise<TeamModel[]> {
     const teams = await this.dynamodb.query({
       TableName: this.tableName,
+      IndexName: 'GSI1',
       KeyConditionExpression: 'GSI1PK = :username and begins_with(GSI1SK, :team)',
       ExpressionAttributeValues: {
         ':username': Indexes.teamGSI1PK(username),
@@ -225,6 +226,7 @@ export class UserService {
     }).promise();
     const goalsInTeam = await this.dynamodb.query({
       TableName: this.tableName,
+      IndexName: 'GSI1',
       KeyConditionExpression: 'GSI1PK = :teamId and begins_with(GSI1SK, :user)',
       ExpressionAttributeValues: {
         ':teamId': Indexes.teamGSI1PK(teamId),
