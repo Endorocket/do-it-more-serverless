@@ -69,4 +69,21 @@ export class UserController {
       return MessageUtil.error(Status.ERROR, err.message);
     }
   }
+
+  async getFriendsAndTeams(event: any): Promise<ResponseVO> {
+    try {
+      const username: string = AuthUtil.getUsernameClaim(event);
+
+      const friendsAndTeams = await this.userService.getFriendsAndTeams(username);
+      console.log(friendsAndTeams);
+
+      return MessageUtil.successWithData(friendsAndTeams);
+    } catch (err) {
+      console.error(err);
+      if (err.message === Status.NOT_FOUND) {
+        return MessageUtil.error(Status.NOT_FOUND, StatusCode.NOT_FOUND);
+      }
+      return MessageUtil.error(Status.ERROR, err.message);
+    }
+  }
 }

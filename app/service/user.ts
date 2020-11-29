@@ -4,10 +4,12 @@ import { CreateUserDTO } from '../model/dto/createUserDTO';
 import { Indexes } from '../utils/indexes';
 import { GoalType } from '../model/goal';
 import { UpdateProgressDTO } from '../model/dto/updateProgressDTO';
-import { FriendStatus } from '../model/user';
+import { FriendModel, FriendStatus} from '../model/user';
 import { Status } from '../model/vo/responseVo';
 import { RespondToFriendInvitationDTO } from '../model/dto/respondToFriendInvitationDTO';
 import { ResponseType } from '../model/dto/responseType';
+import { TeamGoal, TeamMember, TeamModel } from '../model/team';
+import { FriendsAndTeamsModel } from '../model/friendsAndTeams';
 
 export class UserService {
   constructor(private dynamodb: DocumentClient, private tableName: string) {
@@ -93,6 +95,7 @@ export class UserService {
       Item: {
         PK: Indexes.friendPK(username),
         SK: Indexes.friendSK(friendName),
+        Username: friendName,
         Status: FriendStatus.INVITED
       },
     }).promise();
@@ -101,6 +104,7 @@ export class UserService {
       Item: {
         PK: Indexes.friendPK(friendName),
         SK: Indexes.friendSK(username),
+        Username: username,
         Status: FriendStatus.INVITING
       },
     }).promise();
@@ -150,5 +154,122 @@ export class UserService {
         SK: Indexes.friendSK(friendName)
       }
     }).promise();
+  }
+
+  async getFriendsAndTeams(username: string): Promise<FriendsAndTeamsModel> {
+    const friendModels: FriendModel[] = await this.getFriends(username);
+    const teamModels: TeamModel[] = await this.getTeams(username);
+    return {
+      friends: friendModels,
+      teams: teamModels
+    };
+  }
+
+  private async getFriends(username: string): Promise<FriendModel[]> {
+    const friends = await this.dynamodb.query({
+      TableName: this.tableName,
+      KeyConditionExpression: 'PK = :username and begins_with(SK, :friend)',
+      ExpressionAttributeValues: {
+        ':username': Indexes.friendPK(username),
+        ':friend': Indexes.FRIEND_PREFIX
+      }
+    }).promise();
+    const friendModels: FriendModel[] = [];
+    for (const friendItem of friends.Items) {
+      const friendData = await this.findUserByUsername(friendItem.Username).promise();
+      const friendDetails = friendData.Items[0];
+      const progress = friendDetails.Progress.map(singleProgress => {
+        return {
+          type: singleProgress.Type,
+          achieved: singleProgress.Achieved,
+          total: singleProgress.Total
+        };
+      });
+      friendModels.push({
+        username: friendItem.Username,
+        avatar: friendDetails.Avatar,
+        level: friendDetails.Level,
+        progress
+      });
+    }
+    return friendModels;
+  }
+
+  private async getTeams(username: string): Promise<TeamModel[]> {
+    const teams = await this.dynamodb.query({
+      TableName: this.tableName,
+      KeyConditionExpression: 'GSI1PK = :username and begins_with(GSI1SK, :team)',
+      ExpressionAttributeValues: {
+        ':username': Indexes.teamGSI1PK(username),
+        ':team': Indexes.TEAM_PREFIX
+      }
+    }).promise();
+    const teamModels: TeamModel[] = [];
+    for (const teamItem of teams.Items) {
+      const teamId: string = teamItem.TeamId;
+      const teamInfo: TeamModel = await this.getTeamInfo(teamId);
+      teamModels.push(teamInfo);
+    }
+    return teamModels;
+  }
+
+  private async getTeamInfo(teamId: string): Promise<TeamModel> {
+    const usersInTeam = await this.dynamodb.query({
+      TableName: this.tableName,
+      KeyConditionExpression: 'PK = :teamId and begins_with(SK, :user)',
+      ExpressionAttributeValues: {
+        ':teamId': Indexes.teamPK(teamId),
+        ':user': Indexes.USER_PREFIX
+      }
+    }).promise();
+    const goalsInTeam = await this.dynamodb.query({
+      TableName: this.tableName,
+      KeyConditionExpression: 'GSI1PK = :teamId and begins_with(GSI1SK, :user)',
+      ExpressionAttributeValues: {
+        ':teamId': Indexes.teamGSI1PK(teamId),
+        ':user': Indexes.USER_PREFIX
+      }
+    }).promise();
+    const teamMembersByUsername: Map<string, TeamMember> = new Map<string, TeamMember>();
+    for (const userInTeam of usersInTeam.Items) {
+      const username: string = userInTeam.Username;
+      const avatar: string = await this.getAvatar(username);
+      teamMembersByUsername.set(username, {
+        name: username,
+        avatar,
+        status: userInTeam.Status
+      });
+    }
+    let goal: TeamGoal;
+    for (const goalInTeam of goalsInTeam.Items) {
+      const username: string = goalInTeam.Username;
+      const teamMember = teamMembersByUsername.get(username);
+      teamMember.doneTimes = goalInTeam.DoneTimes;
+      teamMember.totalTimes = goalInTeam.TotalTimes;
+      if (goal !== undefined) {
+        goal = {
+          name: goalInTeam.GoalName,
+          icon: goalInTeam.Icon,
+          type: goalInTeam.GoalType
+        };
+      }
+    }
+    return {
+      id: teamId,
+      goal,
+      members: Array.from(teamMembersByUsername.values())
+    };
+  }
+
+  private async getAvatar(username: string): Promise<string> {
+    const userAvatar = await this.dynamodb.get({
+      TableName: this.tableName,
+      Key: {
+        PK: Indexes.userPK(username),
+        SK: Indexes.userSK(username)
+      },
+      ProjectionExpression: 'Avatar'
+    }).promise();
+    return userAvatar.Item.Avatar;
   }
 }

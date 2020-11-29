@@ -65,3 +65,7 @@ export const inviteToTeam: Handler = (event: any) => {
 export const respondToTeamInvitation: Handler = (event: any) => {
   return goalsController.respondToTeamInvitation(event);
 };
+
+export const getFriendsAndTeams: Handler = (event: any) => {
+  return userController.getFriendsAndTeams(event);
+};

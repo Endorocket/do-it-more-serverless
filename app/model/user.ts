@@ -1,11 +1,14 @@
 import { GoalModel, GoalType } from './goal';
 
-export interface UserModel {
+export interface FriendModel {
   username: string;
   avatar: string;
   level: number;
   progress: Progress[];
-  goals: GoalModel[];
+}
+
+export interface UserModel extends FriendModel {
+  goals?: GoalModel[];
 }
 
 export interface Progress {

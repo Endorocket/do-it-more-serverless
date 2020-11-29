@@ -94,6 +94,15 @@ functions:
           authorizer:
             arn: ${param:cognitoUserPoolArn}
           cors: true
+  getFriendsAndTeams:
+    handler: app/handler.getFriendsAndTeams
+    events:
+      - http:
+          path: friends
+          method: get
+          authorizer:
+            arn: ${param:cognitoUserPoolArn}
+          cors: true
   inviteFriend:
     handler: app/handler.inviteFriend
     events:
