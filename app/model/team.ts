@@ -1,4 +1,4 @@
-import { GoalType } from './goal';
+import { Frequency, GoalType } from './goal';
 
 export interface TeamModel {
   id: string;
@@ -10,6 +10,7 @@ export interface TeamGoal {
   name: string;
   icon: string;
   type: GoalType;
+  frequency: Frequency;
 }
 
 export interface TeamMember {

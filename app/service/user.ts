@@ -4,7 +4,7 @@ import { CreateUserDTO } from '../model/dto/createUserDTO';
 import { Indexes } from '../utils/indexes';
 import { GoalType } from '../model/goal';
 import { UpdateProgressDTO } from '../model/dto/updateProgressDTO';
-import { FriendModel, FriendStatus} from '../model/user';
+import { FriendModel, FriendStatus } from '../model/user';
 import { Status } from '../model/vo/responseVo';
 import { RespondToFriendInvitationDTO } from '../model/dto/respondToFriendInvitationDTO';
 import { ResponseType } from '../model/dto/responseType';
@@ -251,7 +251,8 @@ export class UserService {
         goal = {
           name: goalInTeam.GoalName,
           icon: goalInTeam.Icon,
-          type: goalInTeam.GoalType
+          type: goalInTeam.GoalType,
+          frequency: goalInTeam.Frequency
         };
       }
     }
