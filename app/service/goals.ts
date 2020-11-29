@@ -280,7 +280,10 @@ export class GoalsService {
         PK: Indexes.teamPK(teamId),
         SK: Indexes.teamSK(username)
       },
-      UpdateExpression: 'SET Status = :status',
+      UpdateExpression: 'SET #invStatus = :status',
+      ExpressionAttributeNames: {
+        '#invStatus': 'Status'
+      },
       ExpressionAttributeValues: {
         ':status': 'MEMBER'
       },
