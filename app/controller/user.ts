@@ -56,9 +56,10 @@ export class UserController {
   async respondToFriendInvitation(event: any): Promise<ResponseVO> {
     try {
       const username: string = AuthUtil.getUsernameClaim(event);
+      const friendUsername: string = event.pathParameters.friendName;
       const respondToFriendInvitationDTO: RespondToFriendInvitationDTO = JSON.parse(event.body);
 
-      await this.userService.respondToFriendInvitation(respondToFriendInvitationDTO, username);
+      await this.userService.respondToFriendInvitation(respondToFriendInvitationDTO, friendUsername, username);
 
       return MessageUtil.success();
     } catch (err) {

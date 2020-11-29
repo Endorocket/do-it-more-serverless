@@ -110,23 +110,23 @@ export class UserService {
     }).promise();
   }
 
-  async respondToFriendInvitation(respondToFriendInvitationDTO: RespondToFriendInvitationDTO, username: string): Promise<void> {
+  async respondToFriendInvitation(respondToFriendInvitationDTO: RespondToFriendInvitationDTO, friendUsername: string, username: string): Promise<void> {
     const friendToRespond = await this.dynamodb.get({
       TableName: this.tableName,
       Key: {
-        PK: Indexes.userPK(respondToFriendInvitationDTO.friendUsername),
-        SK: Indexes.userSK(respondToFriendInvitationDTO.friendUsername)
+        PK: Indexes.userPK(friendUsername),
+        SK: Indexes.userSK(friendUsername)
       },
     }).promise();
     if (!friendToRespond.Item) {
       throw new Error(Status.NOT_FOUND);
     }
     if (respondToFriendInvitationDTO.invitationResponse === ResponseType.ACCEPT) {
-      await this.acceptFriendInvitation(username, respondToFriendInvitationDTO.friendUsername);
-      await this.acceptFriendInvitation(respondToFriendInvitationDTO.friendUsername, username);
+      await this.acceptFriendInvitation(username, friendUsername);
+      await this.acceptFriendInvitation(friendUsername, username);
     } else {
-      await this.deleteFriend(username, respondToFriendInvitationDTO.friendUsername);
-      await this.deleteFriend(respondToFriendInvitationDTO.friendUsername, username);
+      await this.deleteFriend(username, friendUsername);
+      await this.deleteFriend(friendUsername, username);
     }
   }
 
