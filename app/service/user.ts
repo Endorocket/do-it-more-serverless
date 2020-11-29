@@ -84,7 +84,7 @@ export class UserService {
       TableName: this.tableName,
       Key: {
         PK: Indexes.userPK(username),
-        SK: Indexes.userSK(friendName)
+        SK: Indexes.userSK(username)
       },
     }).promise();
     if (!friendToInvite.Item) {
