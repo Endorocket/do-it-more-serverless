@@ -83,8 +83,8 @@ export class UserService {
     const friendToInvite = await this.dynamodb.get({
       TableName: this.tableName,
       Key: {
-        PK: Indexes.userPK(username),
-        SK: Indexes.userSK(username)
+        PK: Indexes.userPK(friendName),
+        SK: Indexes.userSK(friendName)
       },
     }).promise();
     if (!friendToInvite.Item) {
