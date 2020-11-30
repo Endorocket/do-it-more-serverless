@@ -268,7 +268,7 @@ export class GoalsService {
       KeyConditionExpression: 'GSI1PK = :gsi1PK and begins_with(GSI1SK, :gsi1SK)',
       ExpressionAttributeValues: {
         ':gsi1PK': Indexes.goalGSI1PK(teamId),
-        ':gsi1SK': Indexes.GOAL_PREFIX,
+        ':gsi1SK': Indexes.USER_PREFIX,
       },
       Limit: 1
     });
@@ -304,11 +304,23 @@ export class GoalsService {
   }
 
   private async removeGS1FromGoal(teamId: string, username: string): Promise<void> {
+    const goal = await this.dynamodb.query({
+      TableName: this.tableName,
+      IndexName: 'GSI1',
+      KeyConditionExpression: 'GSI1PK = :teamId and GSI1SK = :username',
+      ExpressionAttributeValues: {
+        ':teamId': Indexes.goalGSI1PK(teamId),
+        ':username': Indexes.goalGSI1SK(username)
+      },
+      Limit: 1
+    }).promise();
+    console.log(goal);
+    const goalId: string = goal.Items[0].GoalId;
     const removeGSI1Output = await this.dynamodb.update({
       TableName: this.tableName,
       Key: {
-        GSI1PK: Indexes.goalGSI1PK(teamId),
-        GSI1SK: Indexes.goalGSI1SK(username)
+        PK: Indexes.goalPK(username),
+        SK: Indexes.goalSK(goalId)
       },
       UpdateExpression: 'REMOVE GSI1PK, GSI1SK',
       ReturnValues: 'UPDATED_NEW'
