@@ -65,17 +65,27 @@ export class UserService {
   }
 
   updateProgress(updateProgressDTO: UpdateProgressDTO, username: string): Request<DocumentClient.PutItemOutput, AWSError> {
-    return this.dynamodb.put({
+    const progress = updateProgressDTO.progress.map(singleProgress => {
+      return {
+        Type: singleProgress.type,
+        Achieved: singleProgress.achieved,
+        Total: singleProgress.total
+      };
+    });
+    return this.dynamodb.update({
       TableName: this.tableName,
-      Item: {
-        Level: updateProgressDTO.level,
-        Progress: updateProgressDTO.progress
+      Key: {
+        PK: Indexes.userPK(username),
+        SK: Indexes.userSK(username)
       },
-      ConditionExpression: 'PK = :PK and SK = :SK',
+      UpdateExpression: 'SET #level = :level, Progress = :progress',
+      ExpressionAttributeNames: {
+        '#level': 'Level'
+      },
       ExpressionAttributeValues: {
-        ':PK': Indexes.userPK(username),
-        ':SK': Indexes.userSK(username)
-      },
+        ':level': updateProgressDTO.level,
+        ':progress': progress
+      }
     });
   }
 
