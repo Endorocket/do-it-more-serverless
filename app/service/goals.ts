@@ -1,12 +1,11 @@
 import { DocumentClient } from 'aws-sdk/clients/dynamodb';
 import { AWSError, Request } from 'aws-sdk';
 import { v4 as uuidv4 } from 'uuid';
-import * as DateUtils from 'date-fns';
 
 import { CreateGoalDTO } from '../model/dto/createGoalDTO';
 import { CompleteGoalDTO } from '../model/dto/completeGoalDTO';
 import { Indexes } from '../utils/indexes';
-import { DatesUtil } from '../utils/dates';
+import { PeriodUtils } from '../utils/period';
 import { ResponseType } from '../model/dto/responseType';
 import { Status } from '../model/vo/responseVo';
 
@@ -70,13 +69,12 @@ export class GoalsService {
       };
     const createGoalOutput = await this.dynamodb.put(createGoalParams).promise();
     console.log(createGoalOutput);
-    const periodOfYear = DatesUtil.getPeriodOfYear(createGoalDTO.frequency, now);
+    const periodOfYear = PeriodUtils.getPeriodOfYear(createGoalDTO.frequency, now);
     await this.createPeriod(goalId, now, periodOfYear);
   }
 
   async completeGoal(completeGoalDTO: CompleteGoalDTO, goalId: string, username: string): Promise<void> {
     const now = new Date();
-    console.log(DateUtils.getHours(now));
     const goalOutput = await this.dynamodb.get({
       TableName: this.tableName,
       Key: {
@@ -90,7 +88,7 @@ export class GoalsService {
     }
     await this.updateGoalDoneTimes(username, goalId, completeGoalDTO.times);
 
-    const periodOfYear = DatesUtil.getPeriodOfYear(goal.Frequency, now);
+    const periodOfYear = PeriodUtils.getPeriodOfYear(goal.Frequency, now);
     await this.updatePeriodDoneTimes(goalId, now, periodOfYear, completeGoalDTO.times);
   }
 
@@ -120,7 +118,7 @@ export class GoalsService {
       UpdateExpression: 'ADD DoneTimes :times, #events.#eventIndex :times',
       ExpressionAttributeNames: {
         '#events': 'Events',
-        '#eventIndex': `${now.getFullYear()}-${now.getMonth()}-${now.getDay()}`
+        '#eventIndex': `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDay()}`
       },
       ExpressionAttributeValues: {
         ':times': doneTimes
@@ -134,7 +132,7 @@ export class GoalsService {
     const now = new Date();
     const goals = await this.findGoalsByUsername(username).promise();
     for (const goal of goals.Items) {
-      const periodOfYear = DatesUtil.getPeriodOfYear(goal.Frequency, now);
+      const periodOfYear = PeriodUtils.getPeriodOfYear(goal.Frequency, now);
       const inactivePeriod = await this.checkPeriod(goal.GoalId, now, periodOfYear);
       if (inactivePeriod) {
         await this.resetGoalDoneTimes(username, goal.GoalId);
@@ -186,9 +184,28 @@ export class GoalsService {
 
   async inviteToTeam(goalId: string, username: string, friendUsername: string): Promise<void> {
     const teamId: string = uuidv4();
+    await this.validateGoal(username, goalId);
     await this.addToTeam(teamId, username, 'MEMBER');
     await this.addToTeam(teamId, friendUsername, 'INVITED');
     await this.assignGoalToTeam(username, teamId, goalId);
+  }
+
+  private async validateGoal(username: string, goalId: string): Promise<void> {
+    const goalOutput = await this.dynamodb.get({
+      TableName: this.tableName,
+      Key: {
+        PK: Indexes.goalPK(username),
+        SK: Indexes.goalSK(goalId)
+      },
+    }).promise();
+    const goalItem = goalOutput.Item;
+    if (!goalItem) {
+      throw new Error(Status.NOT_FOUND);
+    }
+    const goalAssignedToTeam: boolean = goalItem.GSI1PK !== undefined;
+    if (goalAssignedToTeam) {
+      throw new Error(Status.GOAL_ALREADY_ASSIGNED_TO_TEAM);
+    }
   }
 
   private async addToTeam(teamId: string, username: string, status: string): Promise<void> {

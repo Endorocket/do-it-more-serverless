@@ -1,7 +1,8 @@
 export enum Status {
   OK = 'OK',
   NOT_FOUND = 'NOT_FOUND',
-  ERROR = 'ERROR'
+  ERROR = 'ERROR',
+  GOAL_ALREADY_ASSIGNED_TO_TEAM = 'GOAL_ALREADY_ASSIGNED_TO_TEAM'
 }
 
 export enum StatusCode {

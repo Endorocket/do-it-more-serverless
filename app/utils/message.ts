@@ -1,10 +1,10 @@
 import { ResponseVO, Status, StatusCode } from '../model/vo/responseVo';
 
-export class MessageUtil {
+export class MessageUtils {
   static successWithData(data: object): ResponseVO {
     return {
       statusCode: StatusCode.SUCCESS,
-      headers: MessageUtil.getResponseHeaders(),
+      headers: MessageUtils.getResponseHeaders(),
       body: JSON.stringify(data)
     };
   }
@@ -12,7 +12,7 @@ export class MessageUtil {
   static success(status: Status = Status.OK): ResponseVO {
     return {
       statusCode: StatusCode.SUCCESS,
-      headers: MessageUtil.getResponseHeaders(),
+      headers: MessageUtils.getResponseHeaders(),
       body: JSON.stringify(status)
     };
   }
@@ -20,7 +20,7 @@ export class MessageUtil {
   static error(status: Status = Status.ERROR, statusCode: StatusCode = StatusCode.ERROR, message: string = null): ResponseVO {
     return {
       statusCode,
-      headers: MessageUtil.getResponseHeaders(),
+      headers: MessageUtils.getResponseHeaders(),
       body: JSON.stringify({ status, message })
     };
   }

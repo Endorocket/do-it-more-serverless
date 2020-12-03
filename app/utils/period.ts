@@ -1,18 +1,18 @@
 import { Frequency } from '../model/goal';
-import * as DateUtils from 'date-fns';
+import { getDayOfYear, getWeek } from 'date-fns';
 
-export class DatesUtil {
+export class PeriodUtils {
   static getPeriodOfYear(frequency: Frequency, now: Date): number {
     let periodOfYear;
     switch (frequency) {
       case Frequency.DAILY:
-        periodOfYear = DateUtils.getDayOfYear(now);
+        periodOfYear = getDayOfYear(now);
         break;
       case Frequency.WEEKLY:
-        periodOfYear = DateUtils.getWeek(now);
+        periodOfYear = getWeek(now);
         break;
       case Frequency.MONTHLY:
-        periodOfYear = DateUtils.getMonth(now) + 1;
+        periodOfYear = now.getMonth() + 1;
         break;
       default:
         throw new Error('Incorrect Frequency type');
