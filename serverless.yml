@@ -67,6 +67,7 @@ functions:
           authorizer:
             arn: ${param:cognitoUserPoolArn}
           cors: true
+    memorySize: 512
   createGoal:
     handler: app/handler.createGoal
     events:
@@ -103,6 +104,7 @@ functions:
           authorizer:
             arn: ${param:cognitoUserPoolArn}
           cors: true
+    memorySize: 512
   inviteFriend:
     handler: app/handler.inviteFriend
     events:

@@ -367,10 +367,13 @@ export class GoalsService {
     }).promise();
     const events: Event[] = [];
     for (const periodItem of periodsFound.Items) {
-      const periodEvents: Map<string, number> = periodItem.Events;
-      periodEvents.forEach((times, date) => {
-        events.push({ date, times });
-      });
+      const periodEvents: object = periodItem.Events;
+      for (const date in periodEvents) {
+        if (periodEvents.hasOwnProperty(date)) {
+          console.log(date, periodEvents[date]);
+          events.push({ date, times: periodEvents[date] });
+        }
+      }
     }
     return events;
   }
