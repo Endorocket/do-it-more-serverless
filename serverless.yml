@@ -139,6 +139,15 @@ functions:
           authorizer:
             arn: ${param:cognitoUserPoolArn}
           cors: true
+  getGoalEvents:
+    handler: app/handler.getGoalEvents
+    events:
+      - http:
+          path: goal-events
+          method: get
+          authorizer:
+            arn: ${param:cognitoUserPoolArn}
+          cors: true
 
 resources:
   Resources:

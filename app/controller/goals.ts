@@ -130,4 +130,17 @@ export class GoalsController {
       return MessageUtils.error(Status.ERROR, err.message);
     }
   }
+
+  async getGoalEvents(event: any): Promise<ResponseVO> {
+    try {
+      const username: string = AuthUtils.getUsernameClaim(event);
+
+      const goalEvents = await this.goalsService.getGoalEvents(username);
+
+      return MessageUtils.successWithData(goalEvents);
+    } catch (err) {
+      console.error(err);
+      return MessageUtils.error(Status.ERROR, err.message);
+    }
+  }
 }

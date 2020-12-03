@@ -8,6 +8,7 @@ import { Indexes } from '../utils/indexes';
 import { PeriodUtils } from '../utils/period';
 import { ResponseType } from '../model/dto/responseType';
 import { Status } from '../model/vo/responseVo';
+import { Event, GoalEventModel, GoalInfo } from '../model/goalEvent';
 
 export class GoalsService {
   constructor(private dynamodb: DocumentClient, private tableName: string) {
@@ -336,5 +337,41 @@ export class GoalsService {
       ReturnValues: 'UPDATED_NEW'
     }).promise();
     console.log(updateCurrentPeriodPatternOutput);
+  }
+
+  async getGoalEvents(username: string): Promise<GoalEventModel[]> {
+    const goalEvents: GoalEventModel[] = [];
+    const goalsFound = await this.findGoalsByUsername(username).promise();
+    for (const item of goalsFound.Items) {
+      const goalInfo: GoalInfo = {
+        goalId: item.GoalId,
+        goalName: item.GoalName,
+        icon: item.Icon,
+        type: item.GoalType,
+        points: item.Points
+      };
+      const events: Event[] = await this.findEventsByGoalId(item.GoalId);
+      goalEvents.push({ goalInfo, events });
+    }
+    return goalEvents;
+  }
+
+  private async findEventsByGoalId(goalId: string): Promise<Event[]> {
+    const periodsFound = await this.dynamodb.query({
+      TableName: this.tableName,
+      KeyConditionExpression: 'PK = :goalId and begins_with(SK, :period)',
+      ExpressionAttributeValues: {
+        ':goalId': Indexes.periodPK(goalId),
+        ':period': Indexes.PERIOD_PREFIX
+      },
+    }).promise();
+    const events: Event[] = [];
+    for (const periodItem of periodsFound.Items) {
+      const periodEvents: Map<string, number> = periodItem.Events;
+      periodEvents.forEach((times, date) => {
+        events.push({ date, times });
+      });
+    }
+    return events;
   }
 }
