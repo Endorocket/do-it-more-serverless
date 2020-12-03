@@ -86,10 +86,18 @@ export class GoalsService {
     if (!goal) {
       throw new Error('Goal not found');
     }
+    const periodOfYear = await this.updatePeriodIfStale(goal, now, username);
     await this.updateGoalDoneTimes(username, goalId, completeGoalDTO.times);
-
-    const periodOfYear = PeriodUtils.getPeriodOfYear(goal.Frequency, now);
     await this.updatePeriodDoneTimes(goalId, now, periodOfYear, completeGoalDTO.times);
+  }
+
+  private async updatePeriodIfStale(goal: DocumentClient.AttributeMap, now: Date, username: string): Promise<number> {
+    const periodOfYear = PeriodUtils.getPeriodOfYear(goal.Frequency, now);
+    if (Indexes.periodSK(now.getFullYear(), periodOfYear) !== goal.CurrentPeriodPattern) {
+      await this.createPeriod(goal.GoalId, now, periodOfYear);
+      await this.updateCurrentPeriodPatternInGoal(username, goal.GoalId, now, periodOfYear);
+    }
+    return periodOfYear;
   }
 
   private async updateGoalDoneTimes(username: string, goalId: string, doneTimes: number): Promise<void> {
@@ -132,40 +140,8 @@ export class GoalsService {
     const now = new Date();
     const goals = await this.findGoalsByUsername(username).promise();
     for (const goal of goals.Items) {
-      const periodOfYear = PeriodUtils.getPeriodOfYear(goal.Frequency, now);
-      const inactivePeriod = await this.checkPeriod(goal.GoalId, now, periodOfYear);
-      if (inactivePeriod) {
-        await this.resetGoalDoneTimes(username, goal.GoalId);
-        await this.createPeriod(goal.GoalId, now, periodOfYear);
-      }
+      await this.updatePeriodIfStale(goal, now, username);
     }
-  }
-
-  private async checkPeriod(goalId: string, now: Date, periodOfYear: number): Promise<boolean> {
-    const periodOutput = await this.dynamodb.get({
-      TableName: this.tableName,
-      Key: {
-        PK: Indexes.periodPK(goalId),
-        SK: Indexes.periodSK(now.getFullYear(), periodOfYear)
-      }
-    }).promise();
-    return !periodOutput.Item;
-  }
-
-  private async resetGoalDoneTimes(username: string, goalId: string): Promise<void> {
-    const resetGoalDoneTimesOutput = await this.dynamodb.update({
-      TableName: this.tableName,
-      Key: {
-        PK: Indexes.goalPK(username),
-        SK: Indexes.goalSK(goalId)
-      },
-      UpdateExpression: 'SET DoneTimes = :times',
-      ExpressionAttributeValues: {
-        ':times': 0
-      },
-      ReturnValues: 'UPDATED_NEW'
-    }).promise();
-    console.log(resetGoalDoneTimesOutput);
   }
 
   private async createPeriod(goalId: string, now: Date, periodOfYear: number): Promise<void> {
@@ -226,7 +202,7 @@ export class GoalsService {
   }
 
   private async assignGoalToTeam(username: string, teamId: string, goalId: string): Promise<void> {
-    const resetGoalDoneTimesOutput = await this.dynamodb.update({
+    const assignGoalToTeamOutput = await this.dynamodb.update({
       TableName: this.tableName,
       Key: {
         PK: Indexes.goalPK(username),
@@ -239,7 +215,7 @@ export class GoalsService {
       },
       ReturnValues: 'UPDATED_NEW'
     }).promise();
-    console.log(resetGoalDoneTimesOutput);
+    console.log(assignGoalToTeamOutput);
   }
 
   async respondToTeamInvitation(username: string, teamId: string, invitationResponse: ResponseType): Promise<void> {
@@ -343,5 +319,22 @@ export class GoalsService {
       ReturnValues: 'UPDATED_NEW'
     }).promise();
     console.log(removeGSI1Output);
+  }
+
+  private async updateCurrentPeriodPatternInGoal(username: string, goalId: string, now: Date, periodOfYear: number): Promise<void> {
+    const updateCurrentPeriodPatternOutput = await this.dynamodb.update({
+      TableName: this.tableName,
+      Key: {
+        PK: Indexes.goalPK(username),
+        SK: Indexes.goalSK(goalId)
+      },
+      UpdateExpression: 'SET CurrentPeriodPattern = :periodPattern, DoneTimes = :times',
+      ExpressionAttributeValues: {
+        ':periodPattern': Indexes.periodSK(now.getFullYear(), periodOfYear),
+        ':times': 0
+      },
+      ReturnValues: 'UPDATED_NEW'
+    }).promise();
+    console.log(updateCurrentPeriodPatternOutput);
   }
 }

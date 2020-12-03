@@ -10,6 +10,7 @@ import { RespondToFriendInvitationDTO } from '../model/dto/respondToFriendInvita
 import { ResponseType } from '../model/dto/responseType';
 import { TeamGoal, TeamMember, TeamModel } from '../model/team';
 import { FriendsAndTeamsModel } from '../model/friendsAndTeams';
+import { PeriodUtils } from '../utils/period';
 
 export class UserService {
   constructor(private dynamodb: DocumentClient, private tableName: string) {
@@ -229,6 +230,7 @@ export class UserService {
   }
 
   private async getTeamInfo(teamId: string): Promise<TeamModel> {
+    const now = new Date();
     const usersInTeam = await this.dynamodb.query({
       TableName: this.tableName,
       KeyConditionExpression: 'PK = :teamId and begins_with(SK, :user)',
@@ -260,7 +262,12 @@ export class UserService {
     for (const goalInTeam of goalsInTeam.Items) {
       const username: string = goalInTeam.PK.split('#')[1];
       const teamMember = teamMembersByUsername.get(username);
-      teamMember.doneTimes = goalInTeam.DoneTimes;
+      const periodOfYear = PeriodUtils.getPeriodOfYear(goalInTeam.Frequency, now);
+      if (Indexes.periodSK(now.getFullYear(), periodOfYear) !== goalInTeam.CurrentPeriodPattern) {
+        teamMember.doneTimes = 0;
+      } else {
+        teamMember.doneTimes = goalInTeam.DoneTimes;
+      }
       teamMember.totalTimes = goalInTeam.TotalTimes;
       if (goal === undefined) {
         goal = {
