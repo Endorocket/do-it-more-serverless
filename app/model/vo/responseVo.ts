@@ -7,6 +7,7 @@ export enum Status {
 
 export enum StatusCode {
   SUCCESS = 200,
+  BAD_REQUEST = 400,
   NOT_FOUND = 403,
   ERROR = 500
 }

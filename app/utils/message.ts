@@ -27,6 +27,7 @@ export class MessageUtils {
 
   private static getResponseHeaders(): object {
     return {
+      'Access-Control-Allow-Methods': '*',
       'Access-Control-Allow-Origin': '*'
     };
   }
